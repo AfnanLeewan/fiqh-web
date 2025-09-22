@@ -32,7 +32,8 @@ import {
   AppBar,
   Toolbar,
   InputAdornment,
-  ButtonGroup
+  ButtonGroup,
+  Collapse
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -43,7 +44,9 @@ import {
   Folder as FolderIcon,
   Book as BookOpenIcon,
   Logout as LogOutIcon,
-  Visibility as ViewIcon
+  Visibility as ViewIcon,
+  ExpandMore as ExpandMoreIcon,
+  ChevronRight as ChevronRightIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { ContentNode } from '@/types/content';
@@ -95,6 +98,7 @@ export default function AdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingNode, setEditingNode] = useState<EditingContentNode | null>(null);
   const [availableParents, setAvailableParents] = useState<ContentNode[]>([]);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   // Load content data
   const loadContent = async () => {
@@ -159,16 +163,6 @@ export default function AdminPage() {
   const getFilteredContent = () => {
     const tabTypes = ['all', 'category', 'chapter', 'article'];
     const currentTabType = tabTypes[selectedTab];
-    
-    // Helper function to calculate nesting level
-    const getNestingLevel = (item: ContentNode): number => {
-      if (!item.parentId) return 0;
-      
-      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
-      if (!parent) return 0;
-      
-      return 1 + getNestingLevel(parent);
-    };
     
     // Helper function to check if an item belongs to a category tree
     const belongsToCategory = (item: ContentNode, categoryId: string): boolean => {
@@ -237,7 +231,83 @@ export default function AdminPage() {
       }
       
       return matchesSearch && matchesTab && matchesCategory && matchesChapter;
-    }).map((item: ContentNode) => ({ ...item, level: getNestingLevel(item) }));
+    });
+  };
+
+  // Tree management functions
+  const toggleNodeExpansion = (nodeId: string) => {
+    setExpandedNodes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  };
+
+  const hasChildren = (nodeId: string): boolean => {
+    return contentData.some(item => item.parentId === nodeId);
+  };
+
+  const sortContentHierarchically = (content: ContentNode[]): ContentNode[] => {
+    const result: ContentNode[] = [];
+    const processed = new Set<string>();
+    
+    const addItemAndChildren = (item: ContentNode, level: number = 0) => {
+      const itemId = item._id || item.id;
+      if (processed.has(itemId)) return;
+      
+      processed.add(itemId);
+      result.push({ ...item, level });
+      
+      // Find and add children
+      const children = content.filter(child => child.parentId === itemId);
+      children.sort((a, b) => a.title.localeCompare(b.title));
+      
+      for (const child of children) {
+        addItemAndChildren(child, level + 1);
+      }
+    };
+    
+    // Start with root items (no parent)
+    const rootItems = content.filter(item => !item.parentId);
+    rootItems.sort((a, b) => a.title.localeCompare(b.title));
+    
+    for (const rootItem of rootItems) {
+      addItemAndChildren(rootItem);
+    }
+    
+    return result;
+  };
+
+  const getFilteredContentWithVisibility = () => {
+    const allContent = getFilteredContent();
+    const sortedContent = sortContentHierarchically(allContent);
+    
+    if (searchQuery) {
+      // When searching, show all matching items regardless of expansion state
+      return sortedContent;
+    }
+    
+    // Filter out collapsed children
+    return sortedContent.filter(item => {
+      if (!item.parentId) return true; // Root items are always visible
+      
+      // Find the parent and check if it's expanded
+      let currentParent = item.parentId;
+      while (currentParent) {
+        if (!expandedNodes.has(currentParent)) {
+          return false; // Parent is collapsed, hide this item
+        }
+        // Move up the tree
+        const parentNode = contentData.find(p => (p._id || p.id) === currentParent);
+        currentParent = parentNode?.parentId;
+      }
+      
+      return true;
+    });
   };
 
   const handleEdit = (node: ContentNode) => {
@@ -415,7 +485,7 @@ export default function AdminPage() {
     }
   };
 
-  const filteredContent = getFilteredContent();
+  const filteredContent = getFilteredContentWithVisibility();
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -579,7 +649,23 @@ export default function AdminPage() {
                         boxSizing: 'border-box'
                       }}
                     >
-                      <ListItemIcon>
+                      <ListItemIcon sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {/* Expand/Collapse Icon */}
+                        {hasChildren(item._id || item.id) ? (
+                          <IconButton
+                            size="small"
+                            onClick={() => toggleNodeExpansion(item._id || item.id)}
+                            sx={{ p: 0.5 }}
+                          >
+                            {expandedNodes.has(item._id || item.id) ? 
+                              <ExpandMoreIcon fontSize="small" /> : 
+                              <ChevronRightIcon fontSize="small" />
+                            }
+                          </IconButton>
+                        ) : (
+                          <Box sx={{ width: 24, height: 24 }} /> // Spacer for alignment
+                        )}
+                        {/* Type Icon */}
                         {getTypeIcon(item.type)}
                       </ListItemIcon>
                       <ListItemText
