@@ -1,4 +1,5 @@
 export const i18n = {
+  title: 'Fiqh Web',
   search: 'ค้นหา',
   comingSoon: 'กำลังมาเร็วๆ นี้',
   read: 'อ่าน',

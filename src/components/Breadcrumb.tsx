@@ -17,6 +17,9 @@ interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ items }: BreadcrumbProps) {
+  // Ensure items is always an array
+  const safeItems = Array.isArray(items) ? items : [];
+  
   return (
     <Box sx={{ mb: 3 }}>
       <Breadcrumbs 
@@ -28,8 +31,8 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           },
         }}
       >
-        {items.map((item, index) => (
-          index === items.length - 1 ? (
+        {safeItems.map((item, index) => (
+          index === safeItems.length - 1 ? (
             <Typography 
               key={item.href}
               color="text.primary" 

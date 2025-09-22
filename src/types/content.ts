@@ -1,15 +1,20 @@
 export interface ContentNode {
   id: string;
+  _id?: string; // MongoDB ObjectId
   slug: string;
   title: string;
   summary?: string;
   type: 'category' | 'chapter' | 'article';
   author?: string;
   createdAt?: string;
+  updatedAt?: string;
   badge?: 'coming-soon' | number;
   body?: string; // Only for articles
+  parentId?: string; // Reference to parent node
+  path?: string[]; // Array of parent slugs for hierarchical navigation
+  order?: number; // For ordering within parent
+  published?: boolean;
   children?: ContentNode[];
-  parentPath?: string[];
 }
 
 export interface SearchResult {

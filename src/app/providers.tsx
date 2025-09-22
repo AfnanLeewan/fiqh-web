@@ -3,8 +3,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CacheProvider } from '@emotion/react';
 import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
+import createEmotionCache from '@/lib/createEmotionCache';
+
+// Client-side cache, shared for the whole session of the user in the browser.
+const clientSideEmotionCache = createEmotionCache();
 
 // Create MUI theme with orange-red primary color to match the original design
 const theme = createTheme({
@@ -67,13 +72,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          {children}
-        </SnackbarProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <CacheProvider value={clientSideEmotionCache}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+            {children}
+          </SnackbarProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </CacheProvider>
   );
 }

@@ -23,7 +23,7 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Menu as MenuIcon,
+  Home as HomeIcon,
   ViewList as ListIcon,
   ViewModule as GridIcon,
   Settings as SettingsIcon,
@@ -50,17 +50,31 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
   const [searchAnchorEl, setSearchAnchorEl] = useState<HTMLElement | null>(null);
   const router = useRouter();
 
-  const handleSearch = useCallback((query: string) => {
+  const handleSearch = useCallback(async (query: string) => {
     setSearchQuery(query);
     if (onSearch) {
       onSearch(query);
     }
     
     if (query.trim()) {
-      const results = searchContent(query);
-      setSearchResults(results);
+      try {
+        const results = await searchContent(query);
+        setSearchResults(results);
+        
+        // Show search results if available
+        if (results.length > 0) {
+          const searchField = document.querySelector('input[placeholder*="search"], input[placeholder*="ค้นหา"]') as HTMLElement;
+          if (searchField) {
+            setSearchAnchorEl(searchField);
+          }
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+      }
     } else {
       setSearchResults([]);
+      setSearchAnchorEl(null);
     }
   }, [onSearch]);
 
@@ -75,8 +89,13 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && searchResults.length > 0) {
-      handleResultClick(searchResults[0]);
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission or default behavior
+      
+      if (Array.isArray(searchResults) && searchResults.length > 0) {
+        handleResultClick(searchResults[0]);
+      }
+      // Don't navigate anywhere if no results
     }
     if (e.key === 'Escape') {
       setSearchAnchorEl(null);
@@ -105,10 +124,11 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
           <IconButton
             edge="start"
             color="inherit"
-            aria-label="menu"
+            aria-label="home"
             sx={{ mr: 2 }}
+            onClick={() => router.push('/')}
           >
-            <MenuIcon />
+            <HomeIcon />
           </IconButton>
           
           <Typography 
@@ -124,48 +144,55 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {/* Search Field */}
             <Box sx={{ position: 'relative' }}>
-              <TextField
-                size="small"
-                placeholder={i18n.search}
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onFocus={(e) => {
-                  if (searchResults.length > 0) {
-                    setSearchAnchorEl(e.currentTarget);
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon sx={{ color: 'action.active' }} />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  width: { xs: 200, md: 300 },
-                  '& .MuiOutlinedInput-root': {
-                    bgcolor: 'rgba(255, 255, 255, 0.15)',
-                    color: 'white',
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (Array.isArray(searchResults) && searchResults.length > 0) {
+                  handleResultClick(searchResults[0]);
+                }
+              }}>
+                <TextField
+                  size="small"
+                  placeholder={i18n.search}
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onFocus={(e) => {
+                    if (Array.isArray(searchResults) && searchResults.length > 0) {
+                      setSearchAnchorEl(e.currentTarget);
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: 'action.active' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    width: { xs: 200, md: 300 },
+                    '& .MuiOutlinedInput-root': {
+                      bgcolor: 'rgba(255, 255, 255, 0.15)',
+                      color: 'white',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.3)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.5)',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'white',
+                      },
                     },
-                    '&:hover fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.5)',
+                    '& .MuiInputBase-input::placeholder': {
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      opacity: 1,
                     },
-                    '&.Mui-focused fieldset': {
-                      borderColor: 'white',
-                    },
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: 'rgba(255, 255, 255, 0.7)',
-                    opacity: 1,
-                  },
-                }}
-              />
+                  }}
+                />
+              </form>
               
               <Popper
-                open={Boolean(searchAnchorEl) && searchResults.length > 0}
+                open={Boolean(searchAnchorEl) && Array.isArray(searchResults) && searchResults.length > 0}
                 anchorEl={searchAnchorEl}
                 placement="bottom-start"
                 sx={{ zIndex: 1300, width: searchAnchorEl?.offsetWidth || 'auto' }}
@@ -173,7 +200,7 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
                 <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
                   <Paper elevation={8} sx={{ maxHeight: 300, overflow: 'auto' }}>
                     <List dense>
-                      {searchResults.map((result) => (
+                      {Array.isArray(searchResults) && searchResults.map((result) => (
                         <ListItemButton
                           key={result.id}
                           onClick={() => handleResultClick(result)}

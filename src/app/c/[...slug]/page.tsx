@@ -46,43 +46,46 @@ export default function CategoryPage() {
     const slug = params.slug as string[];
     if (!slug || slug.length === 0) return;
 
-    const fullPath = slug;
-    const node = findNodeByPath(fullPath);
-    
-    if (!node) {
-      router.push('/');
-      return;
-    }
-
-    setCurrentNode(node);
-
-    // Build breadcrumbs
-    const breadcrumbItems = buildBreadcrumbs(fullPath);
-    setBreadcrumbs(breadcrumbItems);
-
-    // Handle different node types
-    if (node.type === 'article') {
-      // Get parent chapter for navigation
-      const parentPath = fullPath.slice(0, -1);
-      const parentChapter = findNodeByPath(parentPath);
+    const loadData = async () => {
+      const fullPath = slug;
+      const node = await findNodeByPath(fullPath);
       
-      if (parentChapter) {
-        const navData = getNextPrevArticles(node.id, parentChapter);
-        setNavigation(navData);
-        setSidebarItems(parentChapter.children || []);
+      if (!node) {
+        router.push('/');
+        return;
       }
-    } else {
-      // For category/chapter, set sidebar items
-      if (fullPath.length === 1) {
-        // At category level, show root chapters
-        setSidebarItems(node.children || []);
-      } else {
-        // Find parent and show its children
+
+      setCurrentNode(node);
+
+      // Build breadcrumbs (await the async function)
+      try {
+        const breadcrumbItems = await buildBreadcrumbs(fullPath);
+        setBreadcrumbs(breadcrumbItems);
+      } catch (error) {
+        console.error('Error building breadcrumbs:', error);
+        setBreadcrumbs([]);
+      }
+
+      // Always get the root category and show only its top-level chapters in sidebar
+      const rootCategoryPath = [fullPath[0]];
+      const rootCategory = fullPath.length === 1 ? node : await findNodeByPath(rootCategoryPath);
+      const topLevelChapters = (rootCategory?.children || []).filter(child => child.type === 'chapter');
+      setSidebarItems(topLevelChapters);
+
+      // Handle navigation for articles only
+      if (node.type === 'article') {
+        // Get parent chapter for navigation
         const parentPath = fullPath.slice(0, -1);
-        const parent = findNodeByPath(parentPath);
-        setSidebarItems(parent?.children || []);
+        const parentChapter = await findNodeByPath(parentPath);
+        
+        if (parentChapter) {
+          const navData = await getNextPrevArticles(node.id, parentChapter.id);
+          setNavigation(navData);
+        }
       }
-    }
+    };
+
+    loadData();
   }, [params.slug, router]);
 
   const handleViewModeChange = (mode: ViewMode) => {
@@ -180,47 +183,47 @@ export default function CategoryPage() {
                     </Typography>
                   ))}
                 </Box>
+
+                {/* Navigation Buttons inside content card */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mt: 4,
+                  pt: 3,
+                  borderTop: 1,
+                  borderColor: 'divider'
+                }}>
+                  {navigation.prev ? (
+                    <Button
+                      onClick={() => handleNavigation(navigation.prev!)}
+                      variant="contained"
+                      size="large"
+                      startIcon={<ChevronLeft />}
+                      sx={{ boxShadow: 2 }}
+                    >
+                      {i18n.previous}
+                    </Button>
+                  ) : (
+                    <Box />
+                  )}
+                  
+                  {navigation.next ? (
+                    <Button
+                      onClick={() => handleNavigation(navigation.next!)}
+                      variant="contained"
+                      size="large"
+                      endIcon={<ChevronRight />}
+                      sx={{ boxShadow: 2 }}
+                    >
+                      {i18n.next}
+                    </Button>
+                  ) : (
+                    <Box />
+                  )}
+                </Box>
               </Box>
             </Paper>
-
-            {/* Navigation Buttons */}
-            <Box sx={{ 
-              position: 'fixed', 
-              bottom: 24, 
-              left: 24, 
-              right: 24, 
-              display: 'flex', 
-              justifyContent: 'space-between',
-              pointerEvents: 'none'
-            }}>
-              {navigation.prev ? (
-                <Button
-                  onClick={() => handleNavigation(navigation.prev!)}
-                  variant="contained"
-                  size="large"
-                  startIcon={<ChevronLeft />}
-                  sx={{ pointerEvents: 'auto', boxShadow: 3 }}
-                >
-                  {i18n.previous}
-                </Button>
-              ) : (
-                <Box />
-              )}
-              
-              {navigation.next ? (
-                <Button
-                  onClick={() => handleNavigation(navigation.next!)}
-                  variant="contained"
-                  size="large"
-                  endIcon={<ChevronRight />}
-                  sx={{ pointerEvents: 'auto', boxShadow: 3 }}
-                >
-                  {i18n.next}
-                </Button>
-              ) : (
-                <Box />
-              )}
-            </Box>
           </Container>
         </Box>
       </Box>

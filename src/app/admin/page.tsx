@@ -1,33 +1,40 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Box,
   Container,
   Typography,
-  Paper,
-  TextField,
   Button,
-  IconButton,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box,
+  Paper,
   Tabs,
   Tab,
-  AppBar,
-  Toolbar,
-  InputAdornment,
   List,
   ListItem,
   ListItemIcon,
   ListItemText,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Chip,
+  Alert,
+  CircularProgress,
+  Autocomplete,
+  AppBar,
+  Toolbar,
+  InputAdornment,
+  ButtonGroup
 } from '@mui/material';
 import {
-  Add as PlusIcon,
   Search as SearchIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -39,13 +46,13 @@ import {
   Visibility as ViewIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
-import { mockData } from '@/data/mockData';
 import { ContentNode } from '@/types/content';
-
-type EditingNode = Partial<ContentNode> & {
-  isNew?: boolean;
-  parentId?: string;
-};
+import {
+  getAllContentByType,
+  createContent,
+  updateContent,
+  deleteContent
+} from '@/lib/contentUtils';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -69,39 +76,168 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-export default function Admin() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [editingNode, setEditingNode] = useState<EditingNode | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+interface EditingContentNode extends Partial<ContentNode> {
+  isNew?: boolean;
+  parentId?: string;
+}
+
+export default function AdminPage() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  
+  const [contentData, setContentData] = useState<ContentNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>(''); // Category filter
+  const [selectedChapter, setSelectedChapter] = useState<string>(''); // Chapter filter
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingNode, setEditingNode] = useState<EditingContentNode | null>(null);
+  const [availableParents, setAvailableParents] = useState<ContentNode[]>([]);
 
-  // Mock data management (in real app, this would be API calls)
-  const [contentData] = useState(mockData);
+  // Load content data
+  const loadContent = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get all content types
+      const [categories, chapters, articles] = await Promise.all([
+        getAllContentByType('category'),
+        getAllContentByType('chapter'),
+        getAllContentByType('article')
+      ]);
+      
+      // Combine all content
+      const allContent = [...categories, ...chapters, ...articles];
+      setContentData(allContent);
+    } catch (err) {
+      setError('Failed to load content');
+      console.error('Error loading content:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const flattenContent = (nodes: ContentNode[], level = 0): (ContentNode & { level: number })[] => {
-    const result: (ContentNode & { level: number })[] = [];
+  useEffect(() => {
+    loadContent();
+  }, []);
+
+  // Reset chapter filter when category changes
+  useEffect(() => {
+    setSelectedChapter('');
+  }, [selectedCategory]);
+
+  const getAvailableChapters = () => {
+    if (!selectedCategory) return [];
     
-    nodes.forEach(node => {
-      result.push({ ...node, level });
-      if (node.children) {
-        result.push(...flattenContent(node.children, level + 1));
+    // Helper function to check if a chapter belongs to the selected category
+    const belongsToCategory = (item: ContentNode, categoryId: string): boolean => {
+      if (!item.parentId) return false;
+      
+      // Direct child of category
+      if (item.parentId === categoryId) return true;
+      
+      // Find the parent
+      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      if (!parent) return false;
+      
+      // If parent is a chapter, check recursively
+      if (parent.type === 'chapter') {
+        return belongsToCategory(parent, categoryId);
       }
-    });
+      
+      return false;
+    };
     
-    return result;
+    return contentData.filter(item => 
+      item.type === 'chapter' && belongsToCategory(item, selectedCategory)
+    );
   };
 
   const getFilteredContent = () => {
     const tabTypes = ['all', 'category', 'chapter', 'article'];
     const currentTabType = tabTypes[selectedTab];
     
-    return flattenContent(contentData).filter(item => {
+    // Helper function to calculate nesting level
+    const getNestingLevel = (item: ContentNode): number => {
+      if (!item.parentId) return 0;
+      
+      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      if (!parent) return 0;
+      
+      return 1 + getNestingLevel(parent);
+    };
+    
+    // Helper function to check if an item belongs to a category tree
+    const belongsToCategory = (item: ContentNode, categoryId: string): boolean => {
+      if (!item.parentId) return false;
+      
+      // Find the parent
+      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      if (!parent) return false;
+      
+      // If parent is the target category, we belong to it
+      if ((parent._id || parent.id) === categoryId) return true;
+      
+      // If parent is a chapter, check recursively
+      if (parent.type === 'chapter') {
+        return belongsToCategory(parent, categoryId);
+      }
+      
+      return false;
+    };
+
+    // Helper function to check if an item belongs to a chapter tree
+    const belongsToChapter = (item: ContentNode, chapterId: string): boolean => {
+      if (!item.parentId) return false;
+      
+      // Direct child of the chapter
+      if (item.parentId === chapterId) return true;
+      
+      // Find the parent
+      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      if (!parent) return false;
+      
+      // If parent is a chapter, check recursively
+      if (parent.type === 'chapter') {
+        return belongsToChapter(parent, chapterId);
+      }
+      
+      return false;
+    };
+    
+    return contentData.filter((item: ContentNode) => {
       const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesTab = currentTabType === 'all' || item.type === currentTabType;
-      return matchesSearch && matchesTab;
-    });
+      
+      // Category filter
+      let matchesCategory = true;
+      if (selectedCategory) {
+        if (item.type === 'category') {
+          matchesCategory = (item._id || item.id) === selectedCategory;
+        } else {
+          matchesCategory = belongsToCategory(item, selectedCategory);
+        }
+      }
+
+      // Chapter filter
+      let matchesChapter = true;
+      if (selectedChapter) {
+        if (item.type === 'chapter') {
+          matchesChapter = (item._id || item.id) === selectedChapter || belongsToChapter(item, selectedChapter);
+        } else if (item.type === 'article') {
+          matchesChapter = belongsToChapter(item, selectedChapter);
+        } else if (item.type === 'category') {
+          // Show category only if it's the root of the selected chapter
+          const selectedChapterData = contentData.find(c => (c._id || c.id) === selectedChapter);
+          matchesChapter = selectedChapterData && belongsToCategory(selectedChapterData, item._id || item.id);
+        }
+      }
+      
+      return matchesSearch && matchesTab && matchesCategory && matchesChapter;
+    }).map((item: ContentNode) => ({ ...item, level: getNestingLevel(item) }));
   };
 
   const handleEdit = (node: ContentNode) => {
@@ -109,38 +245,130 @@ export default function Admin() {
     setIsDialogOpen(true);
   };
 
+  // Helper function to generate slug from title
+  const generateSlug = (title: string): string => {
+    return title
+      .toLowerCase()
+      .trim()
+      // Replace Thai characters and spaces with hyphens
+      .replace(/[\s\u0E00-\u0E7F]+/g, '-')
+      // Replace special characters with hyphens
+      .replace(/[^\w\-]+/g, '-')
+      // Remove multiple consecutive hyphens
+      .replace(/\-\-+/g, '-')
+      // Remove leading and trailing hyphens
+      .replace(/^-+|-+$/g, '');
+  };
+
+  // Handle title change and auto-generate slug
+  const handleTitleChange = (newTitle: string) => {
+    setEditingNode(prev => {
+      if (!prev) return prev;
+      
+      const updates: Partial<typeof prev> = { title: newTitle };
+      
+      // Auto-generate slug only for new items or if slug is empty/matches old title
+      if (prev.isNew || !prev.slug || prev.slug === generateSlug(prev.title || '')) {
+        updates.slug = generateSlug(newTitle);
+      }
+      
+      return { ...prev, ...updates };
+    });
+  };
+
   const handleCreate = (type: 'category' | 'chapter' | 'article', parentId?: string) => {
+    // Load available parents based on type
+    if (type === 'chapter') {
+      // Chapters can be children of categories OR other chapters
+      const parents = contentData.filter(item => 
+        item.type === 'category' || item.type === 'chapter'
+      );
+      setAvailableParents(parents);
+    } else if (type === 'article') {
+      // Articles can be children of categories or chapters (at any level)
+      const parents = contentData.filter(item => 
+        item.type === 'category' || item.type === 'chapter'
+      );
+      setAvailableParents(parents);
+    } else {
+      // Categories have no parents
+      setAvailableParents([]);
+    }
+
     setEditingNode({
       isNew: true,
       type,
-      parentId,
+      parentId: parentId || '',
       title: '',
       summary: '',
       body: type === 'article' ? '' : undefined,
       slug: '',
-      badge: type === 'article' ? undefined : 'coming-soon'
+      badge: type === 'article' ? undefined : undefined, // Start as available (no badge)
+      order: 0,
+      published: true
     });
     setIsDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!editingNode?.title || !editingNode?.slug) {
-      enqueueSnackbar('Title and slug are required', { variant: 'error' });
+  const handleSave = async () => {
+    if (!editingNode?.title) {
+      enqueueSnackbar('Title is required', { variant: 'error' });
       return;
     }
 
-    enqueueSnackbar(
-      `${editingNode.isNew ? 'Created' : 'Updated'} ${editingNode.type} successfully`,
-      { variant: 'success' }
-    );
+    // Validate parent selection for chapters and articles
+    if (editingNode.type !== 'category' && !editingNode.parentId && availableParents.length > 0) {
+      enqueueSnackbar(`Please select a parent ${editingNode.type === 'chapter' ? 'category' : 'category/chapter'}`, { variant: 'error' });
+      return;
+    }
 
-    setIsDialogOpen(false);
-    setEditingNode(null);
+    try {
+      const contentData = {
+        ...editingNode,
+        parentId: editingNode.parentId || undefined
+      };
+      delete contentData.isNew;
+
+      if (editingNode.isNew) {
+        const created = await createContent(contentData);
+        if (created) {
+          enqueueSnackbar(`Created ${editingNode.type} successfully`, { variant: 'success' });
+          loadContent(); // Reload content
+        } else {
+          throw new Error('Failed to create content');
+        }
+      } else {
+        const updated = await updateContent(contentData);
+        if (updated) {
+          enqueueSnackbar(`Updated ${editingNode.type} successfully`, { variant: 'success' });
+          loadContent(); // Reload content
+        } else {
+          throw new Error('Failed to update content');
+        }
+      }
+
+      setIsDialogOpen(false);
+      setEditingNode(null);
+    } catch (err) {
+      enqueueSnackbar('Failed to save content', { variant: 'error' });
+      console.error('Error saving content:', err);
+    }
   };
 
-  const handleDelete = (node: ContentNode) => {
+  const handleDelete = async (node: ContentNode) => {
     if (confirm(`Are you sure you want to delete "${node.title}"?`)) {
-      enqueueSnackbar('Content deleted successfully', { variant: 'success' });
+      try {
+        const success = await deleteContent(node._id || node.id);
+        if (success) {
+          enqueueSnackbar('Content deleted successfully', { variant: 'success' });
+          loadContent(); // Reload content
+        } else {
+          throw new Error('Failed to delete content');
+        }
+      } catch (err) {
+        enqueueSnackbar('Failed to delete content', { variant: 'error' });
+        console.error('Error deleting content:', err);
+      }
     }
   };
 
@@ -154,6 +382,27 @@ export default function Admin() {
       case 'chapter': return <FolderIcon />;
       case 'article': return <FileTextIcon />;
       default: return null;
+    }
+  };
+
+  const getBadgeColor = (badge: string): 'warning' | 'success' | 'info' | 'error' | 'default' => {
+    switch (badge) {
+      case 'coming-soon': return 'warning';
+      case 'available': return 'success';
+      case 'new': return 'info';
+      case 'updated': return 'info';
+      default: return 'default';
+    }
+  };
+
+  const getBadgeText = (badge: string | number): string => {
+    if (typeof badge === 'number') return `#${badge}`;
+    switch (badge) {
+      case 'coming-soon': return 'Coming Soon';
+      case 'available': return 'Available';
+      case 'new': return 'New';
+      case 'updated': return 'Updated';
+      default: return badge.toString();
     }
   };
 
@@ -203,85 +452,214 @@ export default function Admin() {
               ),
             }}
           />
-          <Button
-            variant="contained"
-            startIcon={<PlusIcon />}
-            onClick={() => handleCreate('category')}
-            sx={{ minWidth: 150 }}
-          >
-            Add Content
-          </Button>
+          <FormControl sx={{ minWidth: 180 }}>
+            <InputLabel id="category-filter-label">Filter by Category</InputLabel>
+            <Select
+              labelId="category-filter-label"
+              value={selectedCategory}
+              label="Filter by Category"
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              <MenuItem value="">
+                <em>All Categories</em>
+              </MenuItem>
+              {contentData
+                .filter(item => item.type === 'category')
+                .map((category) => (
+                  <MenuItem key={category._id || category.id} value={category._id || category.id}>
+                    {category.title}
+                  </MenuItem>
+                ))}
+            </Select>
+          </FormControl>
+          {selectedCategory && (
+            <FormControl sx={{ minWidth: 180 }}>
+              <InputLabel id="chapter-filter-label">Filter by Chapter</InputLabel>
+              <Select
+                labelId="chapter-filter-label"
+                value={selectedChapter}
+                label="Filter by Chapter"
+                onChange={(e) => setSelectedChapter(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>All Chapters</em>
+                </MenuItem>
+                {getAvailableChapters().map((chapter) => {
+                  // Build display text showing hierarchy for nested chapters
+                  const getChapterHierarchy = (item: ContentNode): string => {
+                    const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+                    if (parent && parent.type === 'chapter') {
+                      return `${getChapterHierarchy(parent)} > ${item.title}`;
+                    }
+                    return item.title;
+                  };
+                  
+                  return (
+                    <MenuItem key={chapter._id || chapter.id} value={chapter._id || chapter.id}>
+                      {getChapterHierarchy(chapter)}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          )}
+          <ButtonGroup variant="contained">
+            <Button
+              startIcon={<BookOpenIcon />}
+              onClick={() => handleCreate('category')}
+              sx={{ minWidth: 120 }}
+            >
+              Add Category
+            </Button>
+            <Button
+              startIcon={<FolderIcon />}
+              onClick={() => handleCreate('chapter')}
+              sx={{ minWidth: 120 }}
+            >
+              Add Chapter
+            </Button>
+            <Button
+              startIcon={<FileTextIcon />}
+              onClick={() => handleCreate('article')}
+              sx={{ minWidth: 120 }}
+            >
+              Add Article
+            </Button>
+          </ButtonGroup>
         </Box>
 
-        {/* Content Tabs */}
-        <Paper sx={{ mb: 3 }}>
-          <Tabs 
-            value={selectedTab} 
-            onChange={(_, newValue) => setSelectedTab(newValue)}
-            sx={{ borderBottom: 1, borderColor: 'divider' }}
-          >
-            <Tab label="All Content" />
-            <Tab label="Categories" />
-            <Tab label="Chapters" />
-            <Tab label="Articles" />
-          </Tabs>
+        {/* Loading State */}
+        {loading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+            <CircularProgress />
+          </Box>
+        )}
 
-          <TabPanel value={selectedTab} index={selectedTab}>
-            <List>
-              {filteredContent.map((item) => (
-                <ListItem 
-                  key={item.id}
-                  sx={{ 
-                    ml: item.level * 3,
-                    border: 1,
-                    borderColor: 'divider',
-                    borderRadius: 1,
-                    mb: 1
-                  }}
-                >
-                  <ListItemIcon>
-                    {getTypeIcon(item.type)}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography variant="subtitle1">{item.title}</Typography>
-                        <Chip 
-                          label={item.type} 
-                          color={getTypeColor(item.type)}
-                          size="small"
-                        />
-                        {item.badge && item.badge !== 'coming-soon' && (
-                          <Chip label={`#${item.badge}`} variant="outlined" size="small" />
-                        )}
-                        {item.badge === 'coming-soon' && (
-                          <Chip label="Coming Soon" color="warning" size="small" />
-                        )}
-                      </Box>
-                    }
-                    secondary={item.summary}
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleEdit(item)}
-                      sx={{ mr: 1 }}
+        {/* Error State */}
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {/* Content Tabs */}
+        {!loading && !error && (
+          <Paper sx={{ mb: 3, px: 2 }}>
+            <Tabs
+              value={selectedTab}
+              onChange={(_, newValue) => setSelectedTab(newValue)}
+              sx={{ borderBottom: 1, borderColor: 'divider' }}
+            >
+              <Tab label="All Content" />
+              <Tab label="Categories" />
+              <Tab label="Chapters" />
+              <Tab label="Articles" />
+            </Tabs>
+
+            <TabPanel value={selectedTab} index={selectedTab}>
+              {filteredContent.length === 0 ? (
+                <Box sx={{ textAlign: 'center', py: 4 }}>
+                  <Typography color="text.secondary">
+                    {searchQuery ? 'No content found matching your search.' : 'No content available. Create some content to get started.'}
+                  </Typography>
+                </Box>
+              ) : (
+                <List sx={{ width: '100%', overflow: 'hidden' }}>
+                  {filteredContent.map((item) => (
+                    <ListItem 
+                      key={item._id || item.id}
+                      sx={{ 
+                        ml: Math.min(item.level * 2, 8), // Limit max indentation to 8 units
+                        mr: 1, // Add right margin to prevent overflow
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                        mb: 1,
+                        maxWidth: `calc(100% - ${Math.min(item.level * 2, 8) * 8}px)`, // Ensure it doesn't overflow
+                        boxSizing: 'border-box'
+                      }}
                     >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      edge="end"
-                      onClick={() => handleDelete(item)}
-                      color="error"
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-          </TabPanel>
-        </Paper>
+                      <ListItemIcon>
+                        {getTypeIcon(item.type)}
+                      </ListItemIcon>
+                      <ListItemText
+                        sx={{ 
+                          minWidth: 0, // Allow shrinking
+                          overflow: 'hidden'
+                        }}
+                        primary={
+                          <Box sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: 1,
+                            flexWrap: 'wrap',
+                            minWidth: 0
+                          }}>
+                            <Typography 
+                              variant="subtitle1" 
+                              sx={{ 
+                                minWidth: 0,
+                                wordBreak: 'break-word',
+                                flexShrink: 1
+                              }}
+                            >
+                              {item.title}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
+                              <Chip 
+                                label={item.type} 
+                                color={getTypeColor(item.type)}
+                                size="small"
+                              />
+                              {item.badge && item.badge !== 'coming-soon' && (
+                                <Chip 
+                                  label={getBadgeText(item.badge)} 
+                                  color={typeof item.badge === 'string' ? getBadgeColor(item.badge) : 'default'} 
+                                  size="small" 
+                                />
+                              )}
+                              {item.badge === 'coming-soon' && (
+                                <Chip label="Coming Soon" color={getBadgeColor('coming-soon')} size="small" />
+                              )}
+                            </Box>
+                          </Box>
+                        }
+                        secondary={
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              wordBreak: 'break-word',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                          >
+                            {item.summary}
+                          </Typography>
+                        }
+                      />
+                      <ListItemSecondaryAction>
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleEdit(item)}
+                          sx={{ mr: 1 }}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          edge="end"
+                          onClick={() => handleDelete(item)}
+                          color="error"
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </ListItemSecondaryAction>
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </TabPanel>
+          </Paper>
+        )}
 
         {/* Edit/Create Dialog */}
         <Dialog 
@@ -300,17 +678,84 @@ export default function Admin() {
                   fullWidth
                   label="Title *"
                   value={editingNode?.title || ''}
-                  onChange={(e) => setEditingNode(prev => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder="Enter title"
                 />
-                <TextField
-                  fullWidth
-                  label="Slug *"
-                  value={editingNode?.slug || ''}
-                  onChange={(e) => setEditingNode(prev => ({ ...prev, slug: e.target.value }))}
-                  placeholder="enter-slug"
-                />
               </Box>
+
+              {/* Parent Selection for chapters and articles */}
+              {editingNode?.type !== 'category' && availableParents.length > 0 && (
+                <Autocomplete
+                  fullWidth
+                  options={availableParents}
+                  value={availableParents.find(parent => (parent._id || parent.id) === editingNode?.parentId) || null}
+                  onChange={(event, newValue) => {
+                    setEditingNode(prev => ({ 
+                      ...prev, 
+                      parentId: newValue ? (newValue._id || newValue.id) : '' 
+                    }));
+                  }}
+                  getOptionLabel={(option) => {
+                    // Build display text showing hierarchy
+                    const getParentHierarchy = (item: ContentNode): string => {
+                      const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
+                      if (parentItem) {
+                        return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                      }
+                      return item.title;
+                    };
+                    return `${getParentHierarchy(option)} (${option.type})`;
+                  }}
+                  filterOptions={(options, { inputValue }) => {
+                    // Custom filter that searches in title and hierarchy
+                    return options.filter(option => {
+                      const getParentHierarchy = (item: ContentNode): string => {
+                        const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
+                        if (parentItem) {
+                          return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                        }
+                        return item.title;
+                      };
+                      const fullText = `${getParentHierarchy(option)} ${option.type}`.toLowerCase();
+                      return fullText.includes(inputValue.toLowerCase());
+                    });
+                  }}
+                  renderOption={(props, option) => {
+                    const getParentHierarchy = (item: ContentNode): string => {
+                      const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
+                      if (parentItem) {
+                        return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                      }
+                      return item.title;
+                    };
+                    
+                    return (
+                      <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Typography variant="body1">{getParentHierarchy(option)}</Typography>
+                        </Box>
+                        <Chip 
+                          label={option.type} 
+                          size="small" 
+                          color={option.type === 'category' ? 'primary' : 'secondary'} 
+                        />
+                      </Box>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label={`Parent ${editingNode?.type === 'chapter' ? 'Category/Chapter' : 'Category/Chapter'} *`}
+                      placeholder="Search for parent category or chapter..."
+                      helperText="Type to search by name or hierarchy"
+                    />
+                  )}
+                  noOptionsText="No matching parents found"
+                  clearOnBlur
+                  selectOnFocus
+                  handleHomeEndKeys
+                />
+              )}
               
               <TextField
                 fullWidth
@@ -321,6 +766,48 @@ export default function Admin() {
                 onChange={(e) => setEditingNode(prev => ({ ...prev, summary: e.target.value }))}
                 placeholder="Brief description"
               />
+
+              {/* Badge/Status Selection for categories and chapters */}
+              {editingNode?.type !== 'article' && (
+                <FormControl fullWidth>
+                  <InputLabel id="badge-select-label">Status</InputLabel>
+                  <Select
+                    labelId="badge-select-label"
+                    value={editingNode?.badge === 'coming-soon' ? 'coming-soon' : 
+                           typeof editingNode?.badge === 'number' ? 'numbered' : 'available'}
+                    label="Status"
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === 'coming-soon') {
+                        setEditingNode(prev => ({ ...prev, badge: 'coming-soon' }));
+                      } else if (value === 'numbered') {
+                        setEditingNode(prev => ({ ...prev, badge: 1 }));
+                      } else {
+                        setEditingNode(prev => ({ ...prev, badge: undefined }));
+                      }
+                    }}
+                  >
+                    <MenuItem value="available">Available (No Badge)</MenuItem>
+                    <MenuItem value="numbered">Numbered Badge</MenuItem>
+                    <MenuItem value="coming-soon">Coming Soon</MenuItem>
+                  </Select>
+                </FormControl>
+              )}
+
+              {/* Number input for numbered badges */}
+              {editingNode?.type !== 'article' && typeof editingNode?.badge === 'number' && (
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Badge Number"
+                  value={editingNode.badge || 1}
+                  onChange={(e) => setEditingNode(prev => ({ 
+                    ...prev, 
+                    badge: parseInt(e.target.value) || 1 
+                  }))}
+                  inputProps={{ min: 1 }}
+                />
+              )}
 
               {editingNode?.type === 'article' && (
                 <TextField
