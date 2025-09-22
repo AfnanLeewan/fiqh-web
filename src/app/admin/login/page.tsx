@@ -37,16 +37,29 @@ export default function AdminLogin() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Mock authentication - in real app, this would be an API call
-    setTimeout(() => {
-      if (credentials.username === 'admin' && credentials.password === 'password') {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
         enqueueSnackbar('Login Successful! Welcome to the admin dashboard!', { variant: 'success' });
         router.push('/admin');
       } else {
-        enqueueSnackbar('Invalid username or password. Try: admin/password', { variant: 'error' });
+        enqueueSnackbar(data.message || 'Invalid username or password', { variant: 'error' });
       }
+    } catch (error) {
+      console.error('Login error:', error);
+      enqueueSnackbar('Login failed. Please try again.', { variant: 'error' });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -153,7 +166,10 @@ export default function AdminLogin() {
               </Typography>
               <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace' }}>
                 Username: <strong>admin</strong><br />
-                Password: <strong>password</strong>
+                Password: <strong>password123</strong>
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                * Credentials are configured via environment variables
               </Typography>
             </Alert>
 

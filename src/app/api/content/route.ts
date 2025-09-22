@@ -216,6 +216,14 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Handle undefined badge values by explicitly setting to null
+    if (updateData.badge === undefined) {
+      updateData.badge = null;
+    }
+
+    console.log('Updating content with ID:', _id);
+    console.log('Update data:', updateData);
     
     const updatedContent = await ContentNode.findByIdAndUpdate(
       _id,
@@ -229,6 +237,8 @@ export async function PUT(request: NextRequest) {
         { status: 404 }
       );
     }
+
+    console.log('Updated content result:', updatedContent);
     
     return NextResponse.json(updatedContent);
     

@@ -105,61 +105,137 @@ export default function LandingComponent() {
           height: '100%', 
           display: 'flex', 
           flexDirection: 'column',
-          minHeight: 200, // Ensure minimum height for consistency
-          opacity: isComingSoon ? 0.6 : 1,
+          minHeight: 280,
+          maxHeight: 280,
+          opacity: isComingSoon ? 0.7 : 1,
+          transition: 'all 0.3s ease-in-out',
+          borderRadius: 2,
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.08)',
           '&:hover': {
-            boxShadow: isComingSoon ? 'none' : 3,
-            cursor: isComingSoon ? 'default' : 'pointer'
+            boxShadow: isComingSoon ? '0 2px 12px rgba(0, 0, 0, 0.08)' : '0 8px 25px rgba(76, 175, 80, 0.15)',
+            cursor: isComingSoon ? 'default' : 'pointer',
+            transform: isComingSoon ? 'none' : 'translateY(-4px)'
           }
         }}
       >
         <CardContent sx={{ 
           flex: 1, 
-          p: 3, 
+          p: 4, 
           display: 'flex', 
           flexDirection: 'column',
-          justifyContent: 'space-between'
+          height: '100%'
         }}>
-          <Box>
-            <Typography variant="h6" component="h3" gutterBottom fontWeight={600}>
-              {category.title}
-            </Typography>
+          {/* Title with decorative line */}
+          <Box sx={{ mb: 3 }}>
             <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
-                mb: 2,
+              variant="h5" 
+              component="h3" 
+              fontWeight={700}
+              sx={{
+                fontSize: '1.3rem',
+                lineHeight: 1.3,
+                minHeight: '3.4rem', // Space for 2-3 lines
                 display: '-webkit-box',
-                WebkitLineClamp: 3,
+                WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                lineHeight: 1.5,
-                minHeight: '4.5em' // 3 lines × 1.5 line-height
+                mb: 2,
+                color: '#2e2e2e'
               }}
             >
-              {category.summary}
+              {category.title}
             </Typography>
+            {/* Decorative line under title */}
+            <Box 
+              sx={{ 
+                width: '60px',
+                height: '4px',
+                bgcolor: '#4caf50', // Green instead of orange
+                borderRadius: '2px'
+              }} 
+            />
           </Box>
-          <Box sx={{ mt: 'auto', pt: 2 }}>
-            {isComingSoon ? (
-              <Chip label={i18n.comingSoon} variant="outlined" size="small" />
-            ) : category.badge && typeof category.badge === 'number' ? (
-              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+          
+          {/* Description */}
+          <Typography 
+            variant="body1" 
+            color="text.secondary" 
+            sx={{ 
+              flex: 1,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              lineHeight: 1.6,
+              fontSize: '0.95rem',
+              minHeight: '4.8rem',
+              maxHeight: '4.8rem',
+              mb: 3
+            }}
+          >
+            {category.summary || 'No description available.'}
+          </Typography>
+          
+          {/* Bottom section with badges and button */}
+          <Box sx={{ 
+            mt: 'auto',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'flex-end',
+            gap: 2
+          }}>
+            {/* Badge Section */}
+            <Box sx={{ flex: 1 }}>
+              {isComingSoon ? (
+                <Chip 
+                  label={i18n.comingSoon} 
+                  variant="outlined" 
+                  size="small"
+                  sx={{ 
+                    borderColor: '#4caf50',
+                    color: '#4caf50',
+                    fontWeight: 500
+                  }}
+                />
+              ) : category.badge && typeof category.badge === 'number' ? (
                 <Chip 
                   label={`#${category.badge}`} 
-                  variant="outlined" 
+                  variant="filled"
                   size="small" 
-                  color="primary"
+                  sx={{
+                    bgcolor: '#4caf50',
+                    color: 'white',
+                    fontWeight: 600
+                  }}
                 />
-              </Box>
-            ) : null}
+              ) : null}
+            </Box>
+            
+            {/* Action Button - Bottom Right */}
             {!isComingSoon && (
               <Button 
                 variant="contained" 
                 size="small"
                 onClick={() => router.push(`/c/${category.slug}`)}
-                fullWidth
+                sx={{
+                  bgcolor: '#4caf50',
+                  color: 'white',
+                  fontWeight: 500,
+                  fontSize: '0.8rem',
+                  py: 0.8,
+                  px: 2,
+                  minWidth: '60px',
+                  borderRadius: 1.5,
+                  textTransform: 'none',
+                  '&:hover': {
+                    bgcolor: '#45a049',
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 3px 8px rgba(76, 175, 80, 0.3)'
+                  }
+                }}
               >
                 {i18n.read}
               </Button>
@@ -294,14 +370,15 @@ export default function LandingComponent() {
               xs: 'repeat(1, 1fr)',
               sm: 'repeat(2, 1fr)',
               md: 'repeat(3, 1fr)',
-              lg: 'repeat(4, 1fr)'
+              lg: 'repeat(4, 1fr)',
+              xl: 'repeat(5, 1fr)' // More columns for extra large screens
             },
             gap: 3,
+            alignItems: 'stretch', // Ensure all cards stretch to same height
+            justifyItems: 'stretch' // Ensure all cards stretch to same width
           }}>
             {categories.map((category) => (
-              <Box key={category._id || category.id}>
-                <CategoryCard category={category} />
-              </Box>
+              <CategoryCard key={category._id || category.id} category={category} />
             ))}
           </Box>
         )}

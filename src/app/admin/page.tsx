@@ -50,6 +50,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { ContentNode } from '@/types/content';
+import RichTextEditor from '@/components/RichTextEditor';
 import {
   getAllContentByType,
   createContent,
@@ -371,6 +372,7 @@ export default function AdminPage() {
       parentId: parentId || '',
       title: '',
       summary: '',
+      author: type === 'article' ? '' : undefined, // Author field for articles
       body: type === 'article' ? '' : undefined,
       slug: '',
       badge: type === 'article' ? undefined : undefined, // Start as available (no badge)
@@ -395,9 +397,13 @@ export default function AdminPage() {
     try {
       const contentData = {
         ...editingNode,
-        parentId: editingNode.parentId || undefined
+        parentId: editingNode.parentId || undefined,
+        // Explicitly handle badge value for "available" status
+        badge: editingNode.badge === undefined ? null : editingNode.badge
       };
       delete contentData.isNew;
+
+      console.log('Saving content data:', contentData);
 
       if (editingNode.isNew) {
         const created = await createContent(contentData);
@@ -455,27 +461,6 @@ export default function AdminPage() {
     }
   };
 
-  const getBadgeColor = (badge: string): 'warning' | 'success' | 'info' | 'error' | 'default' => {
-    switch (badge) {
-      case 'coming-soon': return 'warning';
-      case 'available': return 'success';
-      case 'new': return 'info';
-      case 'updated': return 'info';
-      default: return 'default';
-    }
-  };
-
-  const getBadgeText = (badge: string | number): string => {
-    if (typeof badge === 'number') return `#${badge}`;
-    switch (badge) {
-      case 'coming-soon': return 'Coming Soon';
-      case 'available': return 'Available';
-      case 'new': return 'New';
-      case 'updated': return 'Updated';
-      default: return badge.toString();
-    }
-  };
-
   const getTypeColor = (type: string): 'info' | 'success' | 'secondary' | 'default' => {
     switch (type) {
       case 'category': return 'info';
@@ -493,7 +478,7 @@ export default function AdminPage() {
       <AppBar position="static" sx={{ bgcolor: 'primary.main' }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Content Management System
+            สารานุกรม
           </Typography>
           <Button color="inherit" onClick={() => router.push('/')} sx={{ mr: 2 }}>
             <ViewIcon sx={{ mr: 1 }} />
@@ -697,15 +682,17 @@ export default function AdminPage() {
                                 color={getTypeColor(item.type)}
                                 size="small"
                               />
-                              {item.badge && item.badge !== 'coming-soon' && (
+                              {/* Show numbered badge */}
+                              {typeof item.badge === 'number' && (
                                 <Chip 
-                                  label={getBadgeText(item.badge)} 
-                                  color={typeof item.badge === 'string' ? getBadgeColor(item.badge) : 'default'} 
+                                  label={`#${item.badge}`} 
+                                  color="default" 
                                   size="small" 
                                 />
                               )}
+                              {/* Show coming soon badge */}
                               {item.badge === 'coming-soon' && (
-                                <Chip label="Coming Soon" color={getBadgeColor('coming-soon')} size="small" />
+                                <Chip label="Coming Soon" color="warning" size="small" />
                               )}
                             </Box>
                           </Box>
@@ -853,6 +840,18 @@ export default function AdminPage() {
                 placeholder="Brief description"
               />
 
+              {/* Author field for articles */}
+              {editingNode?.type === 'article' && (
+                <TextField
+                  fullWidth
+                  label="Author (Optional)"
+                  value={editingNode?.author || ''}
+                  onChange={(e) => setEditingNode(prev => ({ ...prev, author: e.target.value }))}
+                  placeholder="Enter author name"
+                  helperText="Optional field for article attribution"
+                />
+              )}
+
               {/* Badge/Status Selection for categories and chapters */}
               {editingNode?.type !== 'article' && (
                 <FormControl fullWidth>
@@ -896,15 +895,17 @@ export default function AdminPage() {
               )}
 
               {editingNode?.type === 'article' && (
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={8}
-                  label="Content"
-                  value={editingNode?.body || ''}
-                  onChange={(e) => setEditingNode(prev => ({ ...prev, body: e.target.value }))}
-                  placeholder="Article content"
-                />
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Content
+                  </Typography>
+                  <RichTextEditor
+                    value={editingNode?.body || ''}
+                    onChange={(value) => setEditingNode(prev => ({ ...prev, body: value }))}
+                    placeholder="Enter article content..."
+                    height={300}
+                  />
+                </Box>
               )}
             </Box>
           </DialogContent>

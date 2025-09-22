@@ -11,24 +11,29 @@ import createEmotionCache from '@/lib/createEmotionCache';
 // Client-side cache, shared for the whole session of the user in the browser.
 const clientSideEmotionCache = createEmotionCache();
 
-// Create MUI theme with orange-red primary color to match the original design
+// Create MUI theme with light green primary color
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#e65100', // Orange-red primary color
-      light: '#ff9800',
-      dark: '#bf360c',
+      main: '#4caf50', // Light green primary color
+      light: '#81c784',
+      dark: '#388e3c',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#fafafa',
-      light: '#ffffff',
-      dark: '#c7c7c7',
-      contrastText: '#000000',
+      main: '#c8e6c9', // Very light green for secondary
+      light: '#f1f8e9',
+      dark: '#a5d6a7',
+      contrastText: '#2e7d32',
     },
     background: {
-      default: '#fafafa',
+      default: '#f9fff9', // Very light green background
       paper: '#ffffff',
+    },
+    success: {
+      main: '#66bb6a',
+      light: '#98ee99',
+      dark: '#338a3e',
     },
   },
   typography: {
@@ -51,6 +56,30 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#4caf50',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        colorPrimary: {
+          backgroundColor: '#81c784',
+          color: '#ffffff',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          '&:hover': {
+            boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          },
         },
       },
     },

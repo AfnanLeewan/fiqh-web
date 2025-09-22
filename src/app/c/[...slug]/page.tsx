@@ -140,13 +140,22 @@ export default function CategoryPage() {
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         <Header title="สารบัญกรณ์" />
         
-        <Box sx={{ display: 'flex' }}>
-          <Sidebar items={sidebarItems} basePath={`/c/${(params.slug as string[])[0]}`} />
+        <Container component="main" maxWidth="xl" sx={{ py: 3 }}>
+          <Breadcrumb items={breadcrumbs} />
           
-          <Container component="main" maxWidth="lg" sx={{ py: 3 }}>
-            <Breadcrumb items={breadcrumbs} />
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
+            gap: 3,
+            mt: 3,
+            alignItems: 'start'
+          }}>
+            {/* Sidebar on the left */}
+            <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+              <Sidebar items={sidebarItems} basePath={`/c/${(params.slug as string[])[0]}`} />
+            </Box>
             
-            <Paper elevation={2} sx={{ mt: 3 }}>
+            <Paper elevation={2}>
               <Box sx={{ p: 4 }}>
                 <Typography variant="h3" component="h1" gutterBottom fontWeight={700}>
                   {currentNode.title}
@@ -176,13 +185,39 @@ export default function CategoryPage() {
                 
                 <Divider sx={{ mb: 4 }} />
                 
-                <Box sx={{ typography: 'body1', lineHeight: 1.8 }}>
-                  {currentNode.body?.split('\n\n').map((paragraph, index) => (
-                    <Typography key={index} paragraph variant="body1" sx={{ mb: 3 }}>
-                      {paragraph}
-                    </Typography>
-                  ))}
-                </Box>
+                <Box 
+                  sx={{ 
+                    typography: 'body1', 
+                    lineHeight: 1.8,
+                    '& h1, & h2, & h3, & h4, & h5, & h6': {
+                      fontWeight: 'bold',
+                      marginTop: 2,
+                      marginBottom: 1,
+                    },
+                    '& p': {
+                      marginBottom: 2,
+                    },
+                    '& ul, & ol': {
+                      marginBottom: 2,
+                      paddingLeft: 3,
+                    },
+                    '& blockquote': {
+                      borderLeft: '4px solid #ccc',
+                      paddingLeft: 2,
+                      marginLeft: 0,
+                      fontStyle: 'italic',
+                    },
+                    '& img': {
+                      maxWidth: '100%',
+                      height: 'auto',
+                    },
+                    '& a': {
+                      color: 'primary.main',
+                      textDecoration: 'underline',
+                    }
+                  }}
+                  dangerouslySetInnerHTML={{ __html: currentNode.body || '' }}
+                />
 
                 {/* Navigation Buttons inside content card */}
                 <Box sx={{ 
@@ -224,8 +259,8 @@ export default function CategoryPage() {
                 </Box>
               </Box>
             </Paper>
-          </Container>
-        </Box>
+          </Box>
+        </Container>
       </Box>
     );
   }
@@ -244,63 +279,73 @@ export default function CategoryPage() {
         onViewModeChange={handleViewModeChange}
       />
       
-      <Box sx={{ display: 'flex' }}>
-        <Sidebar items={sidebarItems} basePath={`/c/${slug[0]}`} />
+      <Container component="main" maxWidth="xl" sx={{ py: 3 }}>
+        <Breadcrumb items={breadcrumbs} />
         
-        <Container component="main" maxWidth="xl" sx={{ py: 3 }}>
-          <Breadcrumb items={breadcrumbs} />
+        <Box sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: { xs: '1fr', md: '280px 1fr' },
+          gap: 3,
+          mt: 3,
+          alignItems: 'start'
+        }}>
+          {/* Sidebar on the left */}
+          <Box sx={{ display: { xs: 'none', md: 'block' } }}>
+            <Sidebar items={sidebarItems} basePath={`/c/${slug[0]}`} />
+          </Box>
           
-          {items.length === 0 ? (
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center', 
-              minHeight: '50vh',
-              textAlign: 'center'
-            }}>
-              <Typography variant="h6" color="text.secondary">
-                {i18n.comingSoon}
-              </Typography>
-            </Box>
-          ) : viewMode === 'card' ? (
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: {
-                xs: 'repeat(1, 1fr)',
-                md: 'repeat(2, 1fr)', 
-                lg: 'repeat(3, 1fr)'
-              },
-              gap: 3,
-              mt: 3
-            }}>
-              {items.map((item) => (
-                <Box key={item.id}>
-                  <ContentItem
-                    item={item}
-                    viewMode="card"
-                    basePath={basePath}
-                    onItemClick={handleItemClick}
-                  />
-                </Box>
-              ))}
-            </Box>
-          ) : (
-            <Paper elevation={1} sx={{ mt: 3, borderRadius: 2 }}>
-              {items.map((item, index) => (
-                <Box key={item.id}>
-                  <ContentItem
-                    item={item}
-                    viewMode="list"
-                    basePath={basePath}
-                    onItemClick={handleItemClick}
-                  />
-                  {index < items.length - 1 && <Divider />}
-                </Box>
-              ))}
-            </Paper>
-          )}
-        </Container>
-      </Box>
+          <Box>
+            {items.length === 0 ? (
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '50vh',
+                textAlign: 'center'
+              }}>
+                <Typography variant="h6" color="text.secondary">
+                  {i18n.comingSoon}
+                </Typography>
+              </Box>
+            ) : viewMode === 'card' ? (
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: {
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)', 
+                  lg: 'repeat(3, 1fr)'
+                },
+                gap: 3
+              }}>
+                {items.map((item) => (
+                  <Box key={item.id}>
+                    <ContentItem
+                      item={item}
+                      viewMode="card"
+                      basePath={basePath}
+                      onItemClick={handleItemClick}
+                    />
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Paper elevation={1} sx={{ borderRadius: 2 }}>
+                {items.map((item, index) => (
+                  <Box key={item.id}>
+                    <ContentItem
+                      item={item}
+                      viewMode="list"
+                      basePath={basePath}
+                      onItemClick={handleItemClick}
+                    />
+                    {index < items.length - 1 && <Divider />}
+                  </Box>
+                ))}
+              </Paper>
+            )}
+          </Box>
+        </Box>
+      </Container>
     </Box>
   );
 }
