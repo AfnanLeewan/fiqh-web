@@ -33,9 +33,7 @@ import {
   Toolbar,
   InputAdornment,
   ButtonGroup,
-  Collapse,
-  Menu,
-  ListItemButton
+  Menu
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -233,7 +231,7 @@ export default function AdminPage() {
         } else if (item.type === 'category') {
           // Show category only if it's the root of the selected chapter
           const selectedChapterData = contentData.find(c => (c._id || c.id) === selectedChapter);
-          matchesChapter = selectedChapterData && belongsToCategory(selectedChapterData, item._id || item.id);
+          matchesChapter = selectedChapterData ? belongsToCategory(selectedChapterData, item._id || item.id) : false;
         }
       }
       
@@ -303,14 +301,14 @@ export default function AdminPage() {
       if (!item.parentId) return true; // Root items are always visible
       
       // Find the parent and check if it's expanded
-      let currentParent = item.parentId;
+      let currentParent: string | null = item.parentId;
       while (currentParent) {
         if (!expandedNodes.has(currentParent)) {
           return false; // Parent is collapsed, hide this item
         }
         // Move up the tree
         const parentNode = contentData.find(p => (p._id || p.id) === currentParent);
-        currentParent = parentNode?.parentId;
+        currentParent = parentNode?.parentId || null;
       }
       
       return true;
@@ -405,7 +403,7 @@ export default function AdminPage() {
         ...editingNode,
         parentId: editingNode.parentId || undefined,
         // Explicitly handle badge value for "available" status
-        badge: editingNode.badge === undefined ? null : editingNode.badge
+        badge: editingNode.badge === undefined ? undefined : editingNode.badge
       };
       delete contentData.isNew;
 
@@ -655,13 +653,13 @@ export default function AdminPage() {
                     <ListItem 
                       key={item._id || item.id}
                       sx={{ 
-                        ml: Math.min(item.level * 2, 8), // Limit max indentation to 8 units
+                        ml: Math.min((item.level || 0) * 2, 8), // Limit max indentation to 8 units
                         mr: 1, // Add right margin to prevent overflow
                         border: 1,
                         borderColor: 'divider',
                         borderRadius: 1,
                         mb: 1,
-                        maxWidth: `calc(100% - ${Math.min(item.level * 2, 8) * 8}px)`, // Ensure it doesn't overflow
+                        maxWidth: `calc(100% - ${Math.min((item.level || 0) * 2, 8) * 8}px)`, // Ensure it doesn't overflow
                         boxSizing: 'border-box'
                       }}
                     >

@@ -15,6 +15,7 @@ export interface ContentNode {
   order?: number; // For ordering within parent
   published?: boolean;
   children?: ContentNode[];
+  level?: number; // For hierarchical display in admin
 }
 
 export interface SearchResult {
