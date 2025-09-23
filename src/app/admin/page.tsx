@@ -33,7 +33,9 @@ import {
   Toolbar,
   InputAdornment,
   ButtonGroup,
-  Collapse
+  Collapse,
+  Menu,
+  ListItemButton
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -46,7 +48,9 @@ import {
   Logout as LogOutIcon,
   Visibility as ViewIcon,
   ExpandMore as ExpandMoreIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  Add as AddIcon,
+  PostAdd as PostAddIcon
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { ContentNode } from '@/types/content';
@@ -100,6 +104,8 @@ export default function AdminPage() {
   const [editingNode, setEditingNode] = useState<EditingContentNode | null>(null);
   const [availableParents, setAvailableParents] = useState<ContentNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [addMenuAnchor, setAddMenuAnchor] = useState<HTMLElement | null>(null);
+  const [addMenuParentId, setAddMenuParentId] = useState<string | null>(null);
 
   // Load content data
   const loadContent = async () => {
@@ -452,6 +458,31 @@ export default function AdminPage() {
     router.push('/admin/login');
   };
 
+  // Add menu handlers
+  const handleAddMenuOpen = (event: React.MouseEvent<HTMLElement>, parentId: string) => {
+    setAddMenuAnchor(event.currentTarget);
+    setAddMenuParentId(parentId);
+  };
+
+  const handleAddMenuClose = () => {
+    setAddMenuAnchor(null);
+    setAddMenuParentId(null);
+  };
+
+  const handleAddChapter = () => {
+    if (addMenuParentId) {
+      handleCreate('chapter', addMenuParentId);
+    }
+    handleAddMenuClose();
+  };
+
+  const handleAddArticle = () => {
+    if (addMenuParentId) {
+      handleCreate('article', addMenuParentId);
+    }
+    handleAddMenuClose();
+  };
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'category': return <BookOpenIcon />;
@@ -711,6 +742,17 @@ export default function AdminPage() {
                         }
                       />
                       <ListItemSecondaryAction>
+                        {/* Add button for categories and chapters */}
+                        {(item.type === 'category' || item.type === 'chapter') && (
+                          <IconButton
+                            edge="end"
+                            onClick={(e) => handleAddMenuOpen(e, item._id || item.id)}
+                            sx={{ mr: 1 }}
+                            color="primary"
+                          >
+                            <AddIcon />
+                          </IconButton>
+                        )}
                         <IconButton
                           edge="end"
                           onClick={() => handleEdit(item)}
@@ -918,6 +960,34 @@ export default function AdminPage() {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Add Content Menu */}
+        <Menu
+          anchorEl={addMenuAnchor}
+          open={Boolean(addMenuAnchor)}
+          onClose={handleAddMenuClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <MenuItem onClick={handleAddChapter}>
+            <ListItemIcon>
+              <FolderIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Add Chapter</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleAddArticle}>
+            <ListItemIcon>
+              <PostAddIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Add Article</ListItemText>
+          </MenuItem>
+        </Menu>
       </Container>
     </Box>
   );
