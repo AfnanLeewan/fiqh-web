@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 // Load environment variables
 dotenv.config({ path: '.env.local' });
+dotenv.config({ path: '.env' });
 
 async function testDatabaseConnection() {
   console.log('Testing MongoDB connection...');
@@ -11,7 +12,7 @@ async function testDatabaseConnection() {
   
   if (!process.env.MONGODB_URI) {
     console.error('❌ MONGODB_URI not found in environment variables');
-    console.log('Please check your .env.local file');
+    console.log('Please check your .env or .env.local file');
     process.exit(1);
   }
   
