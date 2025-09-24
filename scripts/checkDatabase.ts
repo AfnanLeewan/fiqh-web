@@ -15,12 +15,12 @@ async function checkDatabase() {
     // List all collections
     const collections = await db?.listCollections().toArray();
     console.log('\n📂 Available collections:');
-    collections?.forEach((collection: any) => {
+    collections?.forEach((collection: { name: string }) => {
       console.log(`  - ${collection.name}`);
     });
     
     // Check content_nodes collection specifically
-    const contentNodesExists = collections?.some((col: any) => col.name === 'content_nodes');
+    const contentNodesExists = collections?.some((col: { name: string }) => col.name === 'content_nodes');
     console.log(`\n🎯 content_nodes collection exists: ${contentNodesExists ? '✅ YES' : '❌ NO'}`);
     
     if (contentNodesExists) {
@@ -39,7 +39,7 @@ async function checkDatabase() {
       // Show sample documents
       console.log('\n📋 Sample documents:');
       const sampleCategories = await ContentNode.find({ type: 'category' }).limit(3);
-      sampleCategories.forEach((cat: any) => {
+      sampleCategories.forEach((cat: { title: string; slug: string }) => {
         console.log(`  📁 ${cat.title} (slug: ${cat.slug})`);
       });
       
