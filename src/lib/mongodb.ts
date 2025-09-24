@@ -1,10 +1,8 @@
 import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/web-fiqh';
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
+function getMongodbUri(): string {
+  return process.env.MONGODB_URI || 'mongodb://localhost:27017/web-fiqh';
 }
 
 // Extend the global type for development mode
@@ -19,13 +17,13 @@ let clientPromise: Promise<MongoClient>;
 if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable to preserve the connection
   if (!global._mongoClientPromise) {
-    client = new MongoClient(MONGODB_URI);
+    client = new MongoClient(getMongodbUri());
     global._mongoClientPromise = client.connect();
   }
   clientPromise = global._mongoClientPromise;
 } else {
   // In production mode, create a new client for each connection
-  client = new MongoClient(MONGODB_URI);
+  client = new MongoClient(getMongodbUri());
   clientPromise = client.connect();
 }
 
@@ -38,9 +36,9 @@ export async function connectToDatabase() {
   }
 
   try {
-    await mongoose.connect(MONGODB_URI);
+    const uri = getMongodbUri();
+    await mongoose.connect(uri);
     isConnected = true;
-    console.log('Connected to MongoDB with Mongoose');
     return mongoose.connection;
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);

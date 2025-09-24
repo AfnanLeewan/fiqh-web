@@ -38,10 +38,18 @@ export default function LandingComponent() {
   const [selectedCategory, setSelectedCategory] = useState<string>(''); // Category filter
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  // Handle hydration
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Load categories on component mount
   useEffect(() => {
+    if (!mounted) return; // Prevent loading until component is mounted
+    
     const loadCategories = async () => {
       try {
         setLoading(true);
@@ -58,7 +66,7 @@ export default function LandingComponent() {
     };
 
     loadCategories();
-  }, []);
+  }, [mounted]);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -245,6 +253,21 @@ export default function LandingComponent() {
       </Card>
     );
   };
+
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <Box sx={{ 
+        minHeight: '100vh', 
+        bgcolor: 'background.default',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>

@@ -1,14 +1,24 @@
 import * as dotenv from 'dotenv';
-import { connectToDatabase } from '@/lib/mongodb';
-import mongoose from 'mongoose';
 
-// Load environment variables
+// Load environment variables FIRST, before any other imports
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
 
+import { connectToDatabase } from '@/lib/mongodb';
+import mongoose from 'mongoose';
+
 async function testDatabaseConnection() {
   console.log('Testing MongoDB connection...');
-  console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Found' : 'Not found');
+  console.log('All env vars containing "MONGO":', Object.keys(process.env).filter(key => key.includes('MONGO')));
+  console.log('MONGODB_URI from process.env:', process.env.MONGODB_URI ? 'Found' : 'Not found');
+  
+  if (process.env.MONGODB_URI) {
+    // Show first 30 characters for debugging (hide credentials)
+    const uriPreview = process.env.MONGODB_URI.substring(0, 30) + '...';
+    console.log('URI Preview:', uriPreview);
+    console.log('URI Type:', process.env.MONGODB_URI.startsWith('mongodb+srv') ? 'Cloud Atlas' : 'Local/Other');
+    console.log('Full URI length:', process.env.MONGODB_URI.length);
+  }
   
   if (!process.env.MONGODB_URI) {
     console.error('❌ MONGODB_URI not found in environment variables');

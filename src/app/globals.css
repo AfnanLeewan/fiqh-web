@@ -17,4 +17,10 @@ body {
   background-color: #fafafa;
 }
 
+/* Loading spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Remove Tailwind directives and custom properties since we're using MUI */
