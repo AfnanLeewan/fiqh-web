@@ -9,11 +9,20 @@ export default function createEmotionCache() {
   let insertionPoint;
 
   if (isBrowser) {
-    const emotionInsertionPoint = document.querySelector<HTMLMetaElement>(
-      'meta[name="emotion-insertion-point"]',
-    );
-    insertionPoint = emotionInsertionPoint ?? undefined;
+    try {
+      const emotionInsertionPoint = document.querySelector<HTMLMetaElement>(
+        'meta[name="emotion-insertion-point"]',
+      );
+      insertionPoint = emotionInsertionPoint ?? undefined;
+    } catch (error) {
+      console.warn('Could not find emotion insertion point:', error);
+    }
   }
 
-  return createCache({ key: 'mui-style', insertionPoint });
+  return createCache({ 
+    key: 'mui-style', 
+    insertionPoint,
+    // Prepend styles to ensure they load before other styles
+    prepend: true,
+  });
 }

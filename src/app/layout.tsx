@@ -27,7 +27,6 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="emotion-insertion-point" content="" />
-        <style id="mui-ssr-styles">{/* This will be replaced by MUI styles on the server */}</style>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

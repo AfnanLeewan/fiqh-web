@@ -8,9 +8,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
 import createEmotionCache from '@/lib/createEmotionCache';
 
-// Client-side cache, shared for the whole session of the user in the browser.
-const clientSideEmotionCache = createEmotionCache();
-
 // Create MUI theme with light green primary color
 const theme = createTheme({
   palette: {
@@ -95,21 +92,39 @@ export function Providers({ children }: { children: React.ReactNode }) {
             // With SSR, we usually want to set some default staleTime
             // above 0 to avoid refetching immediately on the client
             staleTime: 60 * 1000,
+            retry: false,
           },
         },
       })
   );
 
-  return (
-    <CacheProvider value={clientSideEmotionCache}>
-      <QueryClientProvider client={queryClient}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-            {children}
-          </SnackbarProvider>
-        </ThemeProvider>
-      </QueryClientProvider>
-    </CacheProvider>
+  // Only create emotion cache on client side
+  const [emotionCache] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return createEmotionCache();
+    }
+    return null;
+  });
+
+  const content = (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline enableColorScheme />
+        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          {children}
+        </SnackbarProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
+
+  // Only use CacheProvider on client side
+  if (emotionCache) {
+    return (
+      <CacheProvider value={emotionCache}>
+        {content}
+      </CacheProvider>
+    );
+  }
+
+  return content;
 }
