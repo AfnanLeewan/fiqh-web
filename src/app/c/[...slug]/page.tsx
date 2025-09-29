@@ -21,6 +21,7 @@ import { Header } from '@/components/Header';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar';
 import { ContentItem } from '@/components/ContentItem';
+import { TreeView } from '@/components/TreeView';
 import { findNodeByPath, buildBreadcrumbs, getNextPrevArticles } from '@/lib/contentUtils';
 import { ContentNode, ViewMode } from '@/types/content';
 import { i18n } from '@/lib/i18n';
@@ -28,12 +29,17 @@ import { i18n } from '@/lib/i18n';
 export default function CategoryPage() {
   const params = useParams();
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Initialize viewMode from localStorage after hydration
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      return (localStorage.getItem('viewMode') as ViewMode) || 'list';
+      const savedViewMode = localStorage.getItem('viewMode') as ViewMode;
+      if (savedViewMode && ['list', 'card', 'tree'].includes(savedViewMode)) {
+        setViewMode(savedViewMode);
+      }
     }
-    return 'list';
-  });
+  }, []);
   const [currentNode, setCurrentNode] = useState<ContentNode | null>(null);
   const [sidebarItems, setSidebarItems] = useState<ContentNode[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ title: string; href: string }>>([]);
@@ -41,6 +47,7 @@ export default function CategoryPage() {
     prev: null,
     next: null
   });
+  const [treeData, setTreeData] = useState<ContentNode[]>([]);
 
   useEffect(() => {
     const slug = params.slug as string[];
@@ -71,6 +78,10 @@ export default function CategoryPage() {
       const rootCategory = fullPath.length === 1 ? node : await findNodeByPath(rootCategoryPath);
       const topLevelChapters = (rootCategory?.children || []).filter(child => child.type === 'chapter');
       setSidebarItems(topLevelChapters);
+
+      // For tree view, start with current node's children
+      // The TreeView component will handle expanding nested children dynamically
+      setTreeData(node.children || []);
 
       // Handle navigation for articles only
       if (node.type === 'article') {
@@ -328,6 +339,8 @@ export default function CategoryPage() {
                   </Box>
                 ))}
               </Box>
+            ) : viewMode === 'tree' ? (
+              <TreeView items={treeData} />
             ) : (
               <Paper elevation={1} sx={{ borderRadius: 2 }}>
                 {items.map((item, index) => (

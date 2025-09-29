@@ -26,4 +26,4 @@ export interface SearchResult {
   slug: string;
 }
 
-export type ViewMode = 'list' | 'card';
+export type ViewMode = 'list' | 'card' | 'tree';

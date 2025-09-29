@@ -96,6 +96,41 @@ export async function getAllContentByType(type: 'category' | 'chapter' | 'articl
   }
 }
 
+export async function getAllContent(): Promise<ContentNode[]> {
+  try {
+    const result = await apiCall('');
+    return result || [];
+  } catch (error) {
+    console.error('Error getting all content:', error);
+    return [];
+  }
+}
+
+export async function getContentDescendants(categoryId: string): Promise<ContentNode[]> {
+  try {
+    // Get all content
+    const allContent = await getAllContent();
+    
+    // Filter to get only descendants of the given category
+    const descendants: ContentNode[] = [];
+    
+    const findDescendants = (parentId: string) => {
+      const children = allContent.filter(item => item.parentId === parentId);
+      for (const child of children) {
+        descendants.push(child);
+        // Recursively find children of this child
+        findDescendants(child._id || child.id);
+      }
+    };
+    
+    findDescendants(categoryId);
+    return descendants;
+  } catch (error) {
+    console.error('Error getting content descendants:', error);
+    return [];
+  }
+}
+
 // CRUD operations for admin
 export async function createContent(content: Partial<ContentNode>): Promise<ContentNode | null> {
   try {

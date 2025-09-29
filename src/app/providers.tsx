@@ -83,6 +83,9 @@ const theme = createTheme({
   },
 });
 
+// Create a client-side emotion cache
+const clientSideEmotionCache = createEmotionCache();
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -98,33 +101,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
-  // Only create emotion cache on client side
-  const [emotionCache] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return createEmotionCache();
-    }
-    return null;
-  });
-
-  const content = (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline enableColorScheme />
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
-          {children}
-        </SnackbarProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+  return (
+    <CacheProvider value={clientSideEmotionCache}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline enableColorScheme />
+          <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+            {children}
+          </SnackbarProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </CacheProvider>
   );
-
-  // Only use CacheProvider on client side
-  if (emotionCache) {
-    return (
-      <CacheProvider value={emotionCache}>
-        {content}
-      </CacheProvider>
-    );
-  }
-
-  return content;
 }

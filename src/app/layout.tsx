@@ -24,13 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="emotion-insertion-point" content="" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning={true}
+        suppressHydrationWarning
       >
         <Providers>{children}</Providers>
       </body>

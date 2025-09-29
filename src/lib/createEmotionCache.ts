@@ -14,15 +14,14 @@ export default function createEmotionCache() {
         'meta[name="emotion-insertion-point"]',
       );
       insertionPoint = emotionInsertionPoint ?? undefined;
-    } catch (error) {
-      console.warn('Could not find emotion insertion point:', error);
+    } catch {
+      // Fallback if insertion point is not found
+      insertionPoint = undefined;
     }
   }
 
   return createCache({ 
-    key: 'mui-style', 
+    key: 'mui', 
     insertionPoint,
-    // Prepend styles to ensure they load before other styles
-    prepend: true,
   });
 }

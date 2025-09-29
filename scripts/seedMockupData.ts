@@ -1,9 +1,3 @@
-import * as dotenv from 'dotenv';
-
-// Load environment variables FIRST, before any other imports
-dotenv.config({ path: '.env.local' });
-dotenv.config({ path: '.env' });
-
 import { connectToDatabase } from '@/lib/mongodb';
 import ContentNode from '@/models/ContentNode';
 

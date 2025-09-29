@@ -26,6 +26,7 @@ import {
   Home as HomeIcon,
   ViewList as ListIcon,
   ViewModule as GridIcon,
+  AccountTree as TreeIcon,
   Settings as SettingsIcon,
   Category as CategoryIcon,
   Article as ArticleIcon,
@@ -248,6 +249,9 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
                 </ToggleButton>
                 <ToggleButton value="card" aria-label="card view">
                   <GridIcon />
+                </ToggleButton>
+                <ToggleButton value="tree" aria-label="tree view">
+                  <TreeIcon />
                 </ToggleButton>
               </ToggleButtonGroup>
             )}
