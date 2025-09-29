@@ -15,14 +15,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Person as PersonIcon,
-  AccessTime as AccessTimeIcon
+  AccessTime as AccessTimeIcon,
+  Article as FileTextIcon
 } from '@mui/icons-material';
 import { Header } from '@/components/Header';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar';
 import { ContentItem } from '@/components/ContentItem';
 import { TreeView } from '@/components/TreeView';
-import { findNodeByPath, buildBreadcrumbs, getNextPrevArticles } from '@/lib/contentUtils';
+import { findNodeByPath, buildBreadcrumbs, getNextPrevArticles, getSiblingArticles } from '@/lib/contentUtils';
 import { ContentNode, ViewMode } from '@/types/content';
 import { i18n } from '@/lib/i18n';
 
@@ -48,6 +49,7 @@ export default function CategoryPage() {
     next: null
   });
   const [treeData, setTreeData] = useState<ContentNode[]>([]);
+  const [siblingArticles, setSiblingArticles] = useState<ContentNode[]>([]);
 
   useEffect(() => {
     const slug = params.slug as string[];
@@ -92,6 +94,10 @@ export default function CategoryPage() {
         if (parentChapter) {
           const navData = await getNextPrevArticles(node.id, parentChapter.id);
           setNavigation(navData);
+          
+          // Also fetch sibling articles for recommendations
+          const siblings = await getSiblingArticles(node.id, parentChapter.id);
+          setSiblingArticles(siblings);
         }
       }
     };
@@ -246,9 +252,34 @@ export default function CategoryPage() {
                       variant="contained"
                       size="large"
                       startIcon={<ChevronLeft />}
-                      sx={{ boxShadow: 2 }}
+                      sx={{ 
+                        boxShadow: 2,
+                        maxWidth: '45%',
+                        textAlign: 'left'
+                      }}
                     >
-                      {i18n.previous}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-start',
+                        minWidth: 0
+                      }}>
+                        <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.7rem' }}>
+                          {i18n.previous}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 'bold',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '100%'
+                          }}
+                        >
+                          {navigation.prev.title}
+                        </Typography>
+                      </Box>
                     </Button>
                   ) : (
                     <Box />
@@ -260,14 +291,132 @@ export default function CategoryPage() {
                       variant="contained"
                       size="large"
                       endIcon={<ChevronRight />}
-                      sx={{ boxShadow: 2 }}
+                      sx={{ 
+                        boxShadow: 2,
+                        maxWidth: '45%',
+                        textAlign: 'right'
+                      }}
                     >
-                      {i18n.next}
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'flex-end',
+                        minWidth: 0
+                      }}>
+                        <Typography variant="caption" sx={{ opacity: 0.8, fontSize: '0.7rem' }}>
+                          {i18n.next}
+                        </Typography>
+                        <Typography 
+                          variant="body2" 
+                          sx={{ 
+                            fontWeight: 'bold',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '100%'
+                          }}
+                        >
+                          {navigation.next.title}
+                        </Typography>
+                      </Box>
                     </Button>
                   ) : (
                     <Box />
                   )}
                 </Box>
+
+                {/* Recommended Content Section */}
+                {siblingArticles.length > 0 && (
+                  <Box sx={{ 
+                    mt: 4,
+                    pt: 3,
+                    borderTop: 1,
+                    borderColor: 'divider'
+                  }}>
+                    <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+                      เนื้อหาแนะนำ
+                    </Typography>
+                    <Box sx={{ 
+                      display: 'grid', 
+                      gridTemplateColumns: {
+                        xs: 'repeat(1, 1fr)',
+                        sm: 'repeat(2, 1fr)', 
+                        md: 'repeat(3, 1fr)'
+                      },
+                      gap: 2
+                    }}>
+                      {siblingArticles.slice(0, 6).map((article) => {
+                        // Build path for each article
+                        const slug = params.slug as string[];
+                        const categorySlug = slug[0];
+                        const chapterSlug = slug.length > 1 ? slug[slug.length - 2] : slug[slug.length - 1];
+                        const articlePath = `/c/${categorySlug}/${chapterSlug}/${article.slug}`;
+                        
+                        return (
+                          <Paper
+                            key={article._id || article.id}
+                            elevation={1}
+                            sx={{
+                              p: 3,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease-in-out',
+                              borderRadius: 2,
+                              '&:hover': {
+                                elevation: 3,
+                                transform: 'translateY(-2px)',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+                              }
+                            }}
+                            onClick={() => router.push(articlePath)}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+                              <FileTextIcon color="primary" sx={{ mt: 0.5, flexShrink: 0 }} />
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography 
+                                  variant="subtitle1" 
+                                  sx={{ 
+                                    fontWeight: 600, 
+                                    mb: 1,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: 'vertical'
+                                  }}
+                                >
+                                  {article.title}
+                                </Typography>
+                                {article.summary && (
+                                  <Typography 
+                                    variant="body2" 
+                                    color="text.secondary"
+                                    sx={{
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 3,
+                                      WebkitBoxOrient: 'vertical',
+                                      lineHeight: 1.5
+                                    }}
+                                  >
+                                    {article.summary}
+                                  </Typography>
+                                )}
+                                {typeof article.badge === 'number' && (
+                                  <Chip 
+                                    label={`#${article.badge}`} 
+                                    size="small" 
+                                    sx={{ mt: 1 }}
+                                  />
+                                )}
+                              </Box>
+                            </Box>
+                          </Paper>
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             </Paper>
           </Box>

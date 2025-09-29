@@ -192,10 +192,15 @@ export async function getAllArticlesInChapter(chapterId: string): Promise<Conten
   }
 }
 
-export async function getNextPrevArticles(currentArticleId: string, parentChapterId: string) {
+export async function getNextPrevArticles(currentArticleId: string, chapterId: string): Promise<{ prev: ContentNode | null; next: ContentNode | null }> {
   try {
-    const articles = await getAllArticlesInChapter(parentChapterId);
-    const currentIndex = articles.findIndex(article => article.id === currentArticleId);
+    const result = await apiCall(`?parentId=${chapterId}`);
+    const articles: ContentNode[] = result || [];
+    
+    // Sort articles by order or title
+    articles.sort((a, b) => (a.order || 0) - (b.order || 0) || a.title.localeCompare(b.title));
+    
+    const currentIndex = articles.findIndex(article => (article._id || article.id) === currentArticleId);
     
     return {
       prev: currentIndex > 0 ? articles[currentIndex - 1] : null,
@@ -204,6 +209,26 @@ export async function getNextPrevArticles(currentArticleId: string, parentChapte
   } catch (error) {
     console.error('Error getting next/prev articles:', error);
     return { prev: null, next: null };
+  }
+}
+
+export async function getSiblingArticles(currentArticleId: string, chapterId: string): Promise<ContentNode[]> {
+  try {
+    const result = await apiCall(`?parentId=${chapterId}`);
+    const articles: ContentNode[] = result || [];
+    
+    // Filter out the current article and return only articles (not other content types)
+    const siblings = articles
+      .filter(article => 
+        article.type === 'article' && 
+        (article._id || article.id) !== currentArticleId
+      )
+      .sort((a, b) => (a.order || 0) - (b.order || 0) || a.title.localeCompare(b.title));
+    
+    return siblings;
+  } catch (error) {
+    console.error('Error getting sibling articles:', error);
+    return [];
   }
 }
 
