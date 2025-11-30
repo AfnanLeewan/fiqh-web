@@ -1,5 +1,18 @@
 import { ContentNode, SearchResult } from '@/types/content';
 
+// Custom error class for API errors with specific data
+class APIError extends Error {
+  status: number;
+  data?: Record<string, unknown>;
+
+  constructor(message: string, status: number, data?: Record<string, unknown>) {
+    super(message);
+    this.status = status;
+    this.data = data;
+    Object.setPrototypeOf(this, APIError.prototype);
+  }
+}
+
 // API Base URL
 const API_BASE = '/api/content';
 
@@ -12,6 +25,12 @@ async function apiCall(endpoint: string, options?: RequestInit) {
     },
     ...options,
   });
+
+  // For DELETE requests, handle specific status codes
+  if (options?.method === 'DELETE' && response.status === 409) {
+    const errorData = await response.json();
+    throw new APIError('Content has children', 409, errorData);
+  }
 
   if (!response.ok) {
     throw new Error(`API call failed: ${response.statusText}`);
@@ -123,18 +142,25 @@ export async function updateContent(content: Partial<ContentNode>): Promise<Cont
   }
 }
 
-export async function deleteContent(id: string): Promise<boolean> {
+export async function deleteContent(id: string, forceDelete = false): Promise<boolean | { error: string; hasChildren: boolean }> {
   try {
-    console.log('deleteContent called with ID:', id);
+    console.log('deleteContent called with ID:', id, 'forceDelete:', forceDelete);
     const encodedId = encodeURIComponent(String(id));
-    console.log('Encoded ID:', encodedId);
-    const response = await apiCall(`?id=${encodedId}`, {
+    const url = forceDelete ? `?id=${encodedId}&force=true` : `?id=${encodedId}`;
+    console.log('Delete URL:', url);
+    const response = await apiCall(url, {
       method: 'DELETE',
     });
     console.log('Delete response:', response);
     return true;
   } catch (error) {
     console.error('Error deleting content:', error);
+    
+    // Check if it's our APIError with children info
+    if (error instanceof APIError && error.status === 409 && error.data?.hasChildren) {
+      return { error: 'Content has children', hasChildren: true };
+    }
+    
     return false;
   }
 }

@@ -322,17 +322,33 @@ export default function AdminPage() {
 
   // Helper function to generate slug from title
   const generateSlug = (title: string): string => {
-    return title
-      .toLowerCase()
-      .trim()
-      // Replace Thai characters and spaces with hyphens
-      .replace(/[\s\u0E00-\u0E7F]+/g, '-')
-      // Replace special characters with hyphens
-      .replace(/[^\w\-]+/g, '-')
-      // Remove multiple consecutive hyphens
-      .replace(/\-\-+/g, '-')
-      // Remove leading and trailing hyphens
-      .replace(/^-+|-+$/g, '');
+    // Check if title contains Thai characters
+    const thaiBoundary = /[\u0E00-\u0E7F]/;
+    const hasThaiCharacters = thaiBoundary.test(title);
+
+    if (hasThaiCharacters) {
+      // For Thai: preserve Thai characters, remove spaces and special chars
+      return title
+        .toLowerCase()
+        .trim()
+        // Remove spaces and special characters, but keep Thai characters
+        .replace(/[\s\-_\.(),;:!?'"\/\\]+/g, '')
+        // Remove any other non-Thai, non-English characters
+        .replace(/[^\u0E00-\u0E7Fa-z0-9]+/g, '');
+    } else {
+      // For English: standard slug generation
+      return title
+        .toLowerCase()
+        .trim()
+        // Replace spaces and special characters with hyphens
+        .replace(/[\s\-_]+/g, '-')
+        // Remove special characters
+        .replace(/[^\w\-]+/g, '-')
+        // Remove multiple consecutive hyphens
+        .replace(/\-\-+/g, '-')
+        // Remove leading and trailing hyphens
+        .replace(/^-+|-+$/g, '');
+    }
   };
 
   // Handle title change and auto-generate slug
@@ -438,8 +454,26 @@ export default function AdminPage() {
   const handleDelete = async (node: ContentNode) => {
     if (confirm(`Are you sure you want to delete "${node.title}"?`)) {
       try {
-        const success = await deleteContent(node._id || node.id);
-        if (success) {
+        const result = await deleteContent(node._id || node.id);
+        
+        // Check if content has children
+        if (result && typeof result === 'object' && 'hasChildren' in result && result.hasChildren) {
+          // Ask user if they want to delete with children
+          const deleteWithChildren = confirm(
+            `"${node.title}" has child content. Do you want to delete it along with all its children? Click OK to delete with children, or Cancel to keep them.`
+          );
+          
+          if (deleteWithChildren) {
+            // Delete with force flag
+            const forceResult = await deleteContent(node._id || node.id, true);
+            if (forceResult === true) {
+              enqueueSnackbar('Content deleted successfully', { variant: 'success' });
+              loadContent(); // Reload content
+            } else {
+              throw new Error('Failed to delete content');
+            }
+          }
+        } else if (result === true) {
           enqueueSnackbar('Content deleted successfully', { variant: 'success' });
           loadContent(); // Reload content
         } else {
@@ -834,6 +868,7 @@ export default function AdminPage() {
                     });
                   }}
                   renderOption={(props, option) => {
+                    const { key, ...rest } = props;
                     const getParentHierarchy = (item: ContentNode): string => {
                       const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
                       if (parentItem) {
@@ -843,7 +878,7 @@ export default function AdminPage() {
                     };
                     
                     return (
-                      <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box key={key} component="li" {...rest} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Box sx={{ flexGrow: 1 }}>
                           <Typography variant="body1">{getParentHierarchy(option)}</Typography>
                         </Box>

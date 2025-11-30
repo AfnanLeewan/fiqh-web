@@ -297,7 +297,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
-    console.log('DELETE request - ID:', id);
+    console.log('DELETE request - Raw ID:', id);
     
     if (!id) {
       console.error('DELETE failed: Missing content ID');
@@ -307,14 +307,32 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    // Check if content has children
-    const hasChildren = await ContentNode.findOne({ parentId: id });
-    if (hasChildren) {
-      console.error('DELETE failed: Content has children - ID:', id);
+    // Validate that ID is a valid MongoDB ObjectId format
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      console.error('DELETE failed: Invalid ObjectId format - ID:', id);
       return NextResponse.json(
-        { error: 'Cannot delete content that has children' },
+        { error: 'Invalid content ID format' },
         { status: 400 }
       );
+    }
+    
+    // Check if content has children
+    const hasChildren = await ContentNode.findOne({ parentId: id });
+    const force = searchParams.get('force') === 'true';
+    
+    if (hasChildren && !force) {
+      console.log('DELETE: Content has children - ID:', id);
+      return NextResponse.json(
+        { error: 'Content has children', hasChildren: true },
+        { status: 409 }
+      );
+    }
+    
+    // If force delete is requested, delete all children recursively
+    if (force && hasChildren) {
+      console.log('Force deleting content with ID:', id);
+      // Delete all descendants
+      await deleteDescendants(id);
     }
     
     console.log('Deleting content with ID:', id);
@@ -337,6 +355,15 @@ export async function DELETE(request: NextRequest) {
       { error: 'Failed to delete content' },
       { status: 500 }
     );
+  }
+}
+
+// Helper function to recursively delete all descendants
+async function deleteDescendants(parentId: string): Promise<void> {
+  const children = await ContentNode.find({ parentId });
+  for (const child of children) {
+    await deleteDescendants(child._id.toString());
+    await ContentNode.findByIdAndDelete(child._id);
   }
 }
 
