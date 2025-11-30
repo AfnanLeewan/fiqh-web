@@ -5,11 +5,30 @@ import ContentNode from '@/models/ContentNode';
 // Helper function to serialize content with stringified IDs
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function serializeContent(content: any): Record<string, unknown> {
-  const obj = content.toObject ? content.toObject() : content;
-  if (obj._id) {
-    obj._id = String(obj._id);
+  try {
+    let obj: Record<string, unknown>;
+    
+    // Handle Mongoose documents
+    if (content && typeof content === 'object' && 'toObject' in content && typeof content.toObject === 'function') {
+      obj = content.toObject() as Record<string, unknown>;
+    } else if (content && typeof content === 'object') {
+      obj = content as Record<string, unknown>;
+    } else {
+      return { value: content };
+    }
+    
+    // Convert ObjectId to string
+    if (obj._id && obj._id.toString) {
+      obj._id = obj._id.toString();
+    } else if (obj._id) {
+      obj._id = String(obj._id);
+    }
+    
+    return obj;
+  } catch (error) {
+    console.error('Error serializing content:', error, content);
+    throw error;
   }
-  return obj;
 }
 
 // GET - Fetch all content nodes or search
@@ -131,7 +150,8 @@ export async function GET(request: NextRequest) {
       }
       
       const serializedContent = serializeContent(currentContent);
-      const serializedChildren = children.map((child: typeof ContentNode) => serializeContent(child));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const serializedChildren = children.map((child: any) => serializeContent(child));
       return NextResponse.json({ content: serializedContent, children: serializedChildren });
     }
     
@@ -141,7 +161,8 @@ export async function GET(request: NextRequest) {
         parentId: parentId,
         published: true 
       }).sort({ order: 1 });
-      const serializedChildren = children.map((child: typeof ContentNode) => serializeContent(child));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const serializedChildren = children.map((child: any) => serializeContent(child));
       return NextResponse.json(serializedChildren);
     }
     
@@ -152,7 +173,8 @@ export async function GET(request: NextRequest) {
     
     // Default: get all content
     const content = await ContentNode.find(query).sort({ order: 1 });
-    const serializedContent = content.map((item: typeof ContentNode) => serializeContent(item));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const serializedContent = content.map((item: any) => serializeContent(item));
     return NextResponse.json(serializedContent);
     
   } catch (error) {
@@ -208,8 +230,7 @@ export async function POST(request: NextRequest) {
     });
     
     const savedContent = await newContent.save();
-    const serialized = serializeContent(savedContent);
-    return NextResponse.json(serialized, { status: 201 });
+    return NextResponse.json(savedContent, { status: 201 });
     
   } catch (error) {
     console.error('POST /api/content error:', error);
@@ -257,8 +278,7 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log('Updated content result:', updatedContent);
-    const serialized = serializeContent(updatedContent);
-    return NextResponse.json(serialized);
+    return NextResponse.json(updatedContent);
     
   } catch (error) {
     console.error('PUT /api/content error:', error);

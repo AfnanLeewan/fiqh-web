@@ -1,4 +1,4 @@
-import ClientOnly from '@/components/ClientOnly';
+import NoSSR from '@/components/NoSSR';
 import Landing from './landing/page';
 
 const LoadingFallback = () => (
@@ -32,8 +32,8 @@ const LoadingFallback = () => (
 
 export default function Home() {
   return (
-    <ClientOnly fallback={<LoadingFallback />}>
+    <NoSSR>
       <Landing />
-    </ClientOnly>
+    </NoSSR>
   );
 }
