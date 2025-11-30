@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/mongodb';
 import ContentNode from '@/models/ContentNode';
 
+// Helper function to serialize content with stringified IDs
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function serializeContent(content: any): Record<string, unknown> {
+  const obj = content.toObject ? content.toObject() : content;
+  if (obj._id) {
+    obj._id = String(obj._id);
+  }
+  return obj;
+}
+
 // GET - Fetch all content nodes or search
 export async function GET(request: NextRequest) {
   try {
@@ -72,12 +82,15 @@ export async function GET(request: NextRequest) {
           published: true 
         }).sort({ order: 1 });
         
-        return NextResponse.json({ content, children });
+        const serializedContent = serializeContent(content);
+        const serializedChildren = children.map(child => serializeContent(child));
+        return NextResponse.json({ content: serializedContent, children: serializedChildren });
       }
       
       // For multi-level paths, build the path recursively
-      let currentContent = null;
-      let parentId = null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let currentContent: any = null;
+      let parentId: string | null = null;
       
       // Find the content by traversing the path
       for (let i = 0; i < pathArray.length; i++) {
@@ -101,7 +114,7 @@ export async function GET(request: NextRequest) {
           return NextResponse.json({ error: `Content not found at path: ${pathArray.slice(0, i + 1).join('/')}` }, { status: 404 });
         }
         
-        parentId = currentContent._id;
+        parentId = currentContent._id.toString();
       }
       
       if (!currentContent) {
@@ -117,7 +130,9 @@ export async function GET(request: NextRequest) {
         }).sort({ order: 1 });
       }
       
-      return NextResponse.json({ content: currentContent, children });
+      const serializedContent = serializeContent(currentContent);
+      const serializedChildren = children.map((child: typeof ContentNode) => serializeContent(child));
+      return NextResponse.json({ content: serializedContent, children: serializedChildren });
     }
     
     if (parentId) {
@@ -126,7 +141,8 @@ export async function GET(request: NextRequest) {
         parentId: parentId,
         published: true 
       }).sort({ order: 1 });
-      return NextResponse.json(children);
+      const serializedChildren = children.map((child: typeof ContentNode) => serializeContent(child));
+      return NextResponse.json(serializedChildren);
     }
     
     if (type) {
@@ -136,7 +152,8 @@ export async function GET(request: NextRequest) {
     
     // Default: get all content
     const content = await ContentNode.find(query).sort({ order: 1 });
-    return NextResponse.json(content);
+    const serializedContent = content.map((item: typeof ContentNode) => serializeContent(item));
+    return NextResponse.json(serializedContent);
     
   } catch (error) {
     console.error('GET /api/content error:', error);
@@ -191,7 +208,8 @@ export async function POST(request: NextRequest) {
     });
     
     const savedContent = await newContent.save();
-    return NextResponse.json(savedContent, { status: 201 });
+    const serialized = serializeContent(savedContent);
+    return NextResponse.json(serialized, { status: 201 });
     
   } catch (error) {
     console.error('POST /api/content error:', error);
@@ -239,8 +257,8 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log('Updated content result:', updatedContent);
-    
-    return NextResponse.json(updatedContent);
+    const serialized = serializeContent(updatedContent);
+    return NextResponse.json(serialized);
     
   } catch (error) {
     console.error('PUT /api/content error:', error);
@@ -259,7 +277,10 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
     
+    console.log('DELETE request - ID:', id);
+    
     if (!id) {
+      console.error('DELETE failed: Missing content ID');
       return NextResponse.json(
         { error: 'Missing content ID' },
         { status: 400 }
@@ -269,21 +290,25 @@ export async function DELETE(request: NextRequest) {
     // Check if content has children
     const hasChildren = await ContentNode.findOne({ parentId: id });
     if (hasChildren) {
+      console.error('DELETE failed: Content has children - ID:', id);
       return NextResponse.json(
         { error: 'Cannot delete content that has children' },
         { status: 400 }
       );
     }
     
+    console.log('Deleting content with ID:', id);
     const deletedContent = await ContentNode.findByIdAndDelete(id);
     
     if (!deletedContent) {
+      console.error('DELETE failed: Content not found - ID:', id);
       return NextResponse.json(
         { error: 'Content not found' },
         { status: 404 }
       );
     }
     
+    console.log('✅ Content deleted successfully - ID:', id);
     return NextResponse.json({ message: 'Content deleted successfully' });
     
   } catch (error) {

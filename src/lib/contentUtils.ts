@@ -125,9 +125,13 @@ export async function updateContent(content: Partial<ContentNode>): Promise<Cont
 
 export async function deleteContent(id: string): Promise<boolean> {
   try {
-    await apiCall(`?id=${id}`, {
+    console.log('deleteContent called with ID:', id);
+    const encodedId = encodeURIComponent(String(id));
+    console.log('Encoded ID:', encodedId);
+    const response = await apiCall(`?id=${encodedId}`, {
       method: 'DELETE',
     });
+    console.log('Delete response:', response);
     return true;
   } catch (error) {
     console.error('Error deleting content:', error);
