@@ -1,17 +1,11 @@
-import {
-  Card,
-  CardContent,
-  Chip,
-  Typography,
-  Box
-} from '@mui/material';
+import { Card, CardContent, Chip, Typography, Box } from "@mui/material";
 import {
   Article as FileTextIcon,
-  Folder as FolderIcon
-} from '@mui/icons-material';
-import { ContentNode, ViewMode } from '@/types/content';
-import { i18n } from '@/lib/i18n';
-import Link from 'next/link';
+  Folder as FolderIcon,
+} from "@mui/icons-material";
+import { ContentNode, ViewMode } from "@/types/content";
+import { i18n } from "@/lib/i18n";
+import Link from "next/link";
 
 interface ContentItemProps {
   item: ContentNode;
@@ -20,32 +14,42 @@ interface ContentItemProps {
   onItemClick?: (item: ContentNode) => void;
 }
 
-export function ContentItem({ item, viewMode, basePath, onItemClick }: ContentItemProps) {
-  const isComingSoon = item.badge === 'coming-soon';
-  const isArticle = item.type === 'article';
+export function ContentItem({
+  item,
+  viewMode,
+  basePath,
+  onItemClick,
+}: ContentItemProps) {
+  const isComingSoon = item.badge === "coming-soon";
+  const isArticle = item.type === "article";
   const href = `${basePath}/${item.slug}`;
 
-  const badgeNumber = typeof item.badge === 'number' ? item.badge : null;
+  const badgeNumber = typeof item.badge === "number" ? item.badge : null;
 
   const content = (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
         {badgeNumber && (
           <Chip
             label={badgeNumber}
             color="primary"
             size="small"
-            sx={{ fontSize: '0.75rem', height: 24 }}
+            sx={{ fontSize: "0.75rem", height: 24 }}
           />
         )}
         <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" component="h3" fontWeight={500} gutterBottom>
+          <Typography
+            variant="subtitle1"
+            component="h3"
+            fontWeight={500}
+            gutterBottom
+          >
             {item.title}
           </Typography>
           {item.summary && (
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
+            <Typography
+              variant="body2"
+              color="text.secondary"
               sx={{ mt: 0.5, lineHeight: 1.5 }}
             >
               {item.summary}
@@ -65,43 +69,43 @@ export function ContentItem({ item, viewMode, basePath, onItemClick }: ContentIt
             size="small"
             color="default"
             variant="outlined"
-            sx={{ fontSize: '0.7rem' }}
+            sx={{ fontSize: "0.7rem" }}
           />
         </Box>
       )}
     </>
   );
 
-  if (viewMode === 'card') {
+  if (viewMode === "card") {
     return (
-      <Card 
-        sx={{ 
-          height: '100%',
-          ...(isComingSoon ? {
-            opacity: 0.6,
-          } : {
-            transition: 'box-shadow 0.2s ease-in-out',
-            cursor: 'pointer',
-            '&:hover': {
-              boxShadow: 4,
-            },
-          }),
+      <Card
+        sx={{
+          height: "100%",
+          ...(isComingSoon
+            ? {
+                opacity: 0.6,
+              }
+            : {
+                transition: "box-shadow 0.2s ease-in-out",
+                cursor: "pointer",
+                "&:hover": {
+                  boxShadow: 4,
+                },
+              }),
         }}
       >
         <CardContent sx={{ p: 3 }}>
           {isComingSoon ? (
-            <Box title={i18n.comingSoon}>
-              {content}
-            </Box>
+            <Box title={i18n.comingSoon}>{content}</Box>
           ) : (
-            <Box 
-              component={Link} 
-              href={href} 
+            <Box
+              component={Link}
+              href={href}
               onClick={() => onItemClick?.(item)}
-              sx={{ 
-                textDecoration: 'none',
-                color: 'inherit',
-                display: 'block',
+              sx={{
+                textDecoration: "none",
+                color: "inherit",
+                display: "block",
               }}
             >
               {content}
@@ -113,33 +117,33 @@ export function ContentItem({ item, viewMode, basePath, onItemClick }: ContentIt
   }
 
   return (
-    <Box 
-      sx={{ 
+    <Box
+      sx={{
         p: 3,
-        ...(isComingSoon ? {
-          opacity: 0.6,
-        } : {
-          transition: 'background-color 0.2s ease-in-out',
-          cursor: 'pointer',
-          '&:hover': {
-            bgcolor: 'action.hover',
-          },
-        }),
+        ...(isComingSoon
+          ? {
+              opacity: 0.6,
+            }
+          : {
+              transition: "background-color 0.2s ease-in-out",
+              cursor: "pointer",
+              "&:hover": {
+                bgcolor: "action.hover",
+              },
+            }),
       }}
     >
       {isComingSoon ? (
-        <Box title={i18n.comingSoon}>
-          {content}
-        </Box>
+        <Box title={i18n.comingSoon}>{content}</Box>
       ) : (
-        <Box 
-          component={Link} 
-          href={href} 
+        <Box
+          component={Link}
+          href={href}
           onClick={() => onItemClick?.(item)}
-          sx={{ 
-            textDecoration: 'none',
-            color: 'inherit',
-            display: 'block',
+          sx={{
+            textDecoration: "none",
+            color: "inherit",
+            display: "block",
           }}
         >
           {content}

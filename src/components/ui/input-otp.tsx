@@ -25,7 +25,10 @@ const InputOTP = React.forwardRef<
       value={internalValue}
       onChange={handleChange}
       maxLength={maxLength}
-      className={cn("w-full text-center font-mono text-2xl tracking-widest", className)}
+      className={cn(
+        "w-full text-center font-mono text-2xl tracking-widest",
+        className,
+      )}
       {...props}
     />
   );
@@ -49,7 +52,7 @@ const InputOTPSlot = React.forwardRef<
     data-index={index}
     className={cn(
       "relative flex h-10 w-10 items-center justify-center border-y border-r border-input text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
-      className
+      className,
     )}
     {...props}
   />

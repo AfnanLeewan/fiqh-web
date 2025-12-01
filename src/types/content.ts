@@ -4,11 +4,11 @@ export interface ContentNode {
   slug: string;
   title: string;
   summary?: string;
-  type: 'category' | 'chapter' | 'article';
+  type: "category" | "chapter" | "article";
   author?: string;
   createdAt?: string;
   updatedAt?: string;
-  badge?: 'coming-soon' | number;
+  badge?: "coming-soon" | number;
   body?: string; // Only for articles
   parentId?: string; // Reference to parent node
   path?: string[]; // Array of parent slugs for hierarchical navigation
@@ -21,9 +21,9 @@ export interface ContentNode {
 export interface SearchResult {
   id: string;
   title: string;
-  type: 'category' | 'chapter' | 'article';
+  type: "category" | "chapter" | "article";
   path: string;
   slug: string;
 }
 
-export type ViewMode = 'list' | 'card' | 'tree';
+export type ViewMode = "list" | "card" | "tree";

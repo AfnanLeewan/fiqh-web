@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Container,
   Typography,
@@ -33,8 +33,8 @@ import {
   Toolbar,
   InputAdornment,
   ButtonGroup,
-  Menu
-} from '@mui/material';
+  Menu,
+} from "@mui/material";
 import {
   Search as SearchIcon,
   Edit as EditIcon,
@@ -48,17 +48,17 @@ import {
   ExpandMore as ExpandMoreIcon,
   ChevronRight as ChevronRightIcon,
   Add as AddIcon,
-  PostAdd as PostAddIcon
-} from '@mui/icons-material';
-import { useSnackbar } from 'notistack';
-import { ContentNode } from '@/types/content';
-import RichTextEditor from '@/components/RichTextEditor';
+  PostAdd as PostAddIcon,
+} from "@mui/icons-material";
+import { useSnackbar } from "notistack";
+import { ContentNode } from "@/types/content";
+import RichTextEditor from "@/components/RichTextEditor";
 import {
   getAllContentByType,
   createContent,
   updateContent,
-  deleteContent
-} from '@/lib/contentUtils';
+  deleteContent,
+} from "@/lib/contentUtils";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -90,16 +90,18 @@ interface EditingContentNode extends Partial<ContentNode> {
 export default function AdminPage() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
-  
+
   const [contentData, setContentData] = useState<ContentNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>(''); // Category filter
-  const [selectedChapter, setSelectedChapter] = useState<string>(''); // Chapter filter
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>(""); // Category filter
+  const [selectedChapter, setSelectedChapter] = useState<string>(""); // Chapter filter
   const [selectedTab, setSelectedTab] = useState(0);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingNode, setEditingNode] = useState<EditingContentNode | null>(null);
+  const [editingNode, setEditingNode] = useState<EditingContentNode | null>(
+    null,
+  );
   const [availableParents, setAvailableParents] = useState<ContentNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [addMenuAnchor, setAddMenuAnchor] = useState<HTMLElement | null>(null);
@@ -110,20 +112,20 @@ export default function AdminPage() {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Get all content types
       const [categories, chapters, articles] = await Promise.all([
-        getAllContentByType('category'),
-        getAllContentByType('chapter'),
-        getAllContentByType('article')
+        getAllContentByType("category"),
+        getAllContentByType("chapter"),
+        getAllContentByType("article"),
       ]);
-      
+
       // Combine all content
       const allContent = [...categories, ...chapters, ...articles];
       setContentData(allContent);
     } catch (err) {
-      setError('Failed to load content');
-      console.error('Error loading content:', err);
+      setError("Failed to load content");
+      console.error("Error loading content:", err);
     } finally {
       setLoading(false);
     }
@@ -135,86 +137,99 @@ export default function AdminPage() {
 
   // Reset chapter filter when category changes
   useEffect(() => {
-    setSelectedChapter('');
+    setSelectedChapter("");
   }, [selectedCategory]);
 
   const getAvailableChapters = () => {
     if (!selectedCategory) return [];
-    
+
     // Helper function to check if a chapter belongs to the selected category
-    const belongsToCategory = (item: ContentNode, categoryId: string): boolean => {
+    const belongsToCategory = (
+      item: ContentNode,
+      categoryId: string,
+    ): boolean => {
       if (!item.parentId) return false;
-      
+
       // Direct child of category
       if (item.parentId === categoryId) return true;
-      
+
       // Find the parent
-      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      const parent = contentData.find((p) => (p._id || p.id) === item.parentId);
       if (!parent) return false;
-      
+
       // If parent is a chapter, check recursively
-      if (parent.type === 'chapter') {
+      if (parent.type === "chapter") {
         return belongsToCategory(parent, categoryId);
       }
-      
+
       return false;
     };
-    
-    return contentData.filter(item => 
-      item.type === 'chapter' && belongsToCategory(item, selectedCategory)
+
+    return contentData.filter(
+      (item) =>
+        item.type === "chapter" && belongsToCategory(item, selectedCategory),
     );
   };
 
   const getFilteredContent = () => {
-    const tabTypes = ['all', 'category', 'chapter', 'article'];
+    const tabTypes = ["all", "category", "chapter", "article"];
     const currentTabType = tabTypes[selectedTab];
-    
+
     // Helper function to check if an item belongs to a category tree
-    const belongsToCategory = (item: ContentNode, categoryId: string): boolean => {
+    const belongsToCategory = (
+      item: ContentNode,
+      categoryId: string,
+    ): boolean => {
       if (!item.parentId) return false;
-      
+
       // Find the parent
-      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      const parent = contentData.find((p) => (p._id || p.id) === item.parentId);
       if (!parent) return false;
-      
+
       // If parent is the target category, we belong to it
       if ((parent._id || parent.id) === categoryId) return true;
-      
+
       // If parent is a chapter, check recursively
-      if (parent.type === 'chapter') {
+      if (parent.type === "chapter") {
         return belongsToCategory(parent, categoryId);
       }
-      
+
       return false;
     };
 
     // Helper function to check if an item belongs to a chapter tree
-    const belongsToChapter = (item: ContentNode, chapterId: string): boolean => {
+    const belongsToChapter = (
+      item: ContentNode,
+      chapterId: string,
+    ): boolean => {
       if (!item.parentId) return false;
-      
+
       // Direct child of the chapter
       if (item.parentId === chapterId) return true;
-      
+
       // Find the parent
-      const parent = contentData.find(p => (p._id || p.id) === item.parentId);
+      const parent = contentData.find((p) => (p._id || p.id) === item.parentId);
       if (!parent) return false;
-      
+
       // If parent is a chapter, check recursively
-      if (parent.type === 'chapter') {
+      if (parent.type === "chapter") {
         return belongsToChapter(parent, chapterId);
       }
-      
+
       return false;
     };
-    
+
     return contentData.filter((item: ContentNode) => {
-      const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTab = currentTabType === 'all' || item.type === currentTabType;
-      
+      const matchesSearch = item.title
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesTab =
+        currentTabType === "all" || item.type === currentTabType;
+
       // Category filter
       let matchesCategory = true;
       if (selectedCategory) {
-        if (item.type === 'category') {
+        if (item.type === "category") {
           matchesCategory = (item._id || item.id) === selectedCategory;
         } else {
           matchesCategory = belongsToCategory(item, selectedCategory);
@@ -224,24 +239,30 @@ export default function AdminPage() {
       // Chapter filter
       let matchesChapter = true;
       if (selectedChapter) {
-        if (item.type === 'chapter') {
-          matchesChapter = (item._id || item.id) === selectedChapter || belongsToChapter(item, selectedChapter);
-        } else if (item.type === 'article') {
+        if (item.type === "chapter") {
+          matchesChapter =
+            (item._id || item.id) === selectedChapter ||
+            belongsToChapter(item, selectedChapter);
+        } else if (item.type === "article") {
           matchesChapter = belongsToChapter(item, selectedChapter);
-        } else if (item.type === 'category') {
+        } else if (item.type === "category") {
           // Show category only if it's the root of the selected chapter
-          const selectedChapterData = contentData.find(c => (c._id || c.id) === selectedChapter);
-          matchesChapter = selectedChapterData ? belongsToCategory(selectedChapterData, item._id || item.id) : false;
+          const selectedChapterData = contentData.find(
+            (c) => (c._id || c.id) === selectedChapter,
+          );
+          matchesChapter = selectedChapterData
+            ? belongsToCategory(selectedChapterData, item._id || item.id)
+            : false;
         }
       }
-      
+
       return matchesSearch && matchesTab && matchesCategory && matchesChapter;
     });
   };
 
   // Tree management functions
   const toggleNodeExpansion = (nodeId: string) => {
-    setExpandedNodes(prev => {
+    setExpandedNodes((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(nodeId)) {
         newSet.delete(nodeId);
@@ -253,53 +274,53 @@ export default function AdminPage() {
   };
 
   const hasChildren = (nodeId: string): boolean => {
-    return contentData.some(item => item.parentId === nodeId);
+    return contentData.some((item) => item.parentId === nodeId);
   };
 
   const sortContentHierarchically = (content: ContentNode[]): ContentNode[] => {
     const result: ContentNode[] = [];
     const processed = new Set<string>();
-    
+
     const addItemAndChildren = (item: ContentNode, level: number = 0) => {
       const itemId = item._id || item.id;
       if (processed.has(itemId)) return;
-      
+
       processed.add(itemId);
       result.push({ ...item, level });
-      
+
       // Find and add children
-      const children = content.filter(child => child.parentId === itemId);
+      const children = content.filter((child) => child.parentId === itemId);
       children.sort((a, b) => a.title.localeCompare(b.title));
-      
+
       for (const child of children) {
         addItemAndChildren(child, level + 1);
       }
     };
-    
+
     // Start with root items (no parent)
-    const rootItems = content.filter(item => !item.parentId);
+    const rootItems = content.filter((item) => !item.parentId);
     rootItems.sort((a, b) => a.title.localeCompare(b.title));
-    
+
     for (const rootItem of rootItems) {
       addItemAndChildren(rootItem);
     }
-    
+
     return result;
   };
 
   const getFilteredContentWithVisibility = () => {
     const allContent = getFilteredContent();
     const sortedContent = sortContentHierarchically(allContent);
-    
+
     if (searchQuery) {
       // When searching, show all matching items regardless of expansion state
       return sortedContent;
     }
-    
+
     // Filter out collapsed children
-    return sortedContent.filter(item => {
+    return sortedContent.filter((item) => {
       if (!item.parentId) return true; // Root items are always visible
-      
+
       // Find the parent and check if it's expanded
       let currentParent: string | null = item.parentId;
       while (currentParent) {
@@ -307,10 +328,12 @@ export default function AdminPage() {
           return false; // Parent is collapsed, hide this item
         }
         // Move up the tree
-        const parentNode = contentData.find(p => (p._id || p.id) === currentParent);
+        const parentNode = contentData.find(
+          (p) => (p._id || p.id) === currentParent,
+        );
         currentParent = parentNode?.parentId || null;
       }
-      
+
       return true;
     });
   };
@@ -328,57 +351,68 @@ export default function AdminPage() {
 
     if (hasThaiCharacters) {
       // For Thai: preserve Thai characters, remove spaces and special chars
-      return title
-        .toLowerCase()
-        .trim()
-        // Remove spaces and special characters, but keep Thai characters
-        .replace(/[\s\-_\.(),;:!?'"\/\\]+/g, '')
-        // Remove any other non-Thai, non-English characters
-        .replace(/[^\u0E00-\u0E7Fa-z0-9]+/g, '');
+      return (
+        title
+          .toLowerCase()
+          .trim()
+          // Remove spaces and special characters, but keep Thai characters
+          .replace(/[\s\-_\.(),;:!?'"\/\\]+/g, "")
+          // Remove any other non-Thai, non-English characters
+          .replace(/[^\u0E00-\u0E7Fa-z0-9]+/g, "")
+      );
     } else {
       // For English: standard slug generation
-      return title
-        .toLowerCase()
-        .trim()
-        // Replace spaces and special characters with hyphens
-        .replace(/[\s\-_]+/g, '-')
-        // Remove special characters
-        .replace(/[^\w\-]+/g, '-')
-        // Remove multiple consecutive hyphens
-        .replace(/\-\-+/g, '-')
-        // Remove leading and trailing hyphens
-        .replace(/^-+|-+$/g, '');
+      return (
+        title
+          .toLowerCase()
+          .trim()
+          // Replace spaces and special characters with hyphens
+          .replace(/[\s\-_]+/g, "-")
+          // Remove special characters
+          .replace(/[^\w\-]+/g, "-")
+          // Remove multiple consecutive hyphens
+          .replace(/\-\-+/g, "-")
+          // Remove leading and trailing hyphens
+          .replace(/^-+|-+$/g, "")
+      );
     }
   };
 
   // Handle title change and auto-generate slug
   const handleTitleChange = (newTitle: string) => {
-    setEditingNode(prev => {
+    setEditingNode((prev) => {
       if (!prev) return prev;
-      
+
       const updates: Partial<typeof prev> = { title: newTitle };
-      
+
       // Auto-generate slug only for new items or if slug is empty/matches old title
-      if (prev.isNew || !prev.slug || prev.slug === generateSlug(prev.title || '')) {
+      if (
+        prev.isNew ||
+        !prev.slug ||
+        prev.slug === generateSlug(prev.title || "")
+      ) {
         updates.slug = generateSlug(newTitle);
       }
-      
+
       return { ...prev, ...updates };
     });
   };
 
-  const handleCreate = (type: 'category' | 'chapter' | 'article', parentId?: string) => {
+  const handleCreate = (
+    type: "category" | "chapter" | "article",
+    parentId?: string,
+  ) => {
     // Load available parents based on type
-    if (type === 'chapter') {
+    if (type === "chapter") {
       // Chapters can be children of categories OR other chapters
-      const parents = contentData.filter(item => 
-        item.type === 'category' || item.type === 'chapter'
+      const parents = contentData.filter(
+        (item) => item.type === "category" || item.type === "chapter",
       );
       setAvailableParents(parents);
-    } else if (type === 'article') {
+    } else if (type === "article") {
       // Articles can be children of categories or chapters (at any level)
-      const parents = contentData.filter(item => 
-        item.type === 'category' || item.type === 'chapter'
+      const parents = contentData.filter(
+        (item) => item.type === "category" || item.type === "chapter",
       );
       setAvailableParents(parents);
     } else {
@@ -389,28 +423,35 @@ export default function AdminPage() {
     setEditingNode({
       isNew: true,
       type,
-      parentId: parentId || '',
-      title: '',
-      summary: '',
-      author: type === 'article' ? '' : undefined, // Author field for articles
-      body: type === 'article' ? '' : undefined,
-      slug: '',
-      badge: type === 'article' ? undefined : undefined, // Start as available (no badge)
+      parentId: parentId || "",
+      title: "",
+      summary: "",
+      author: type === "article" ? "" : undefined, // Author field for articles
+      body: type === "article" ? "" : undefined,
+      slug: "",
+      badge: type === "article" ? undefined : undefined, // Start as available (no badge)
       order: 0,
-      published: true
+      published: true,
     });
     setIsDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!editingNode?.title) {
-      enqueueSnackbar('Title is required', { variant: 'error' });
+      enqueueSnackbar("Title is required", { variant: "error" });
       return;
     }
 
     // Validate parent selection for chapters and articles
-    if (editingNode.type !== 'category' && !editingNode.parentId && availableParents.length > 0) {
-      enqueueSnackbar(`Please select a parent ${editingNode.type === 'chapter' ? 'category' : 'category/chapter'}`, { variant: 'error' });
+    if (
+      editingNode.type !== "category" &&
+      !editingNode.parentId &&
+      availableParents.length > 0
+    ) {
+      enqueueSnackbar(
+        `Please select a parent ${editingNode.type === "chapter" ? "category" : "category/chapter"}`,
+        { variant: "error" },
+      );
       return;
     }
 
@@ -419,35 +460,39 @@ export default function AdminPage() {
         ...editingNode,
         parentId: editingNode.parentId || undefined,
         // Explicitly handle badge value for "available" status
-        badge: editingNode.badge === undefined ? undefined : editingNode.badge
+        badge: editingNode.badge === undefined ? undefined : editingNode.badge,
       };
       delete contentData.isNew;
 
-      console.log('Saving content data:', contentData);
+      console.log("Saving content data:", contentData);
 
       if (editingNode.isNew) {
         const created = await createContent(contentData);
         if (created) {
-          enqueueSnackbar(`Created ${editingNode.type} successfully`, { variant: 'success' });
+          enqueueSnackbar(`Created ${editingNode.type} successfully`, {
+            variant: "success",
+          });
           loadContent(); // Reload content
         } else {
-          throw new Error('Failed to create content');
+          throw new Error("Failed to create content");
         }
       } else {
         const updated = await updateContent(contentData);
         if (updated) {
-          enqueueSnackbar(`Updated ${editingNode.type} successfully`, { variant: 'success' });
+          enqueueSnackbar(`Updated ${editingNode.type} successfully`, {
+            variant: "success",
+          });
           loadContent(); // Reload content
         } else {
-          throw new Error('Failed to update content');
+          throw new Error("Failed to update content");
         }
       }
 
       setIsDialogOpen(false);
       setEditingNode(null);
     } catch (err) {
-      enqueueSnackbar('Failed to save content', { variant: 'error' });
-      console.error('Error saving content:', err);
+      enqueueSnackbar("Failed to save content", { variant: "error" });
+      console.error("Error saving content:", err);
     }
   };
 
@@ -455,43 +500,55 @@ export default function AdminPage() {
     if (confirm(`Are you sure you want to delete "${node.title}"?`)) {
       try {
         const result = await deleteContent(node._id || node.id);
-        
+
         // Check if content has children
-        if (result && typeof result === 'object' && 'hasChildren' in result && result.hasChildren) {
+        if (
+          result &&
+          typeof result === "object" &&
+          "hasChildren" in result &&
+          result.hasChildren
+        ) {
           // Ask user if they want to delete with children
           const deleteWithChildren = confirm(
-            `"${node.title}" has child content. Do you want to delete it along with all its children? Click OK to delete with children, or Cancel to keep them.`
+            `"${node.title}" has child content. Do you want to delete it along with all its children? Click OK to delete with children, or Cancel to keep them.`,
           );
-          
+
           if (deleteWithChildren) {
             // Delete with force flag
             const forceResult = await deleteContent(node._id || node.id, true);
             if (forceResult === true) {
-              enqueueSnackbar('Content deleted successfully', { variant: 'success' });
+              enqueueSnackbar("Content deleted successfully", {
+                variant: "success",
+              });
               loadContent(); // Reload content
             } else {
-              throw new Error('Failed to delete content');
+              throw new Error("Failed to delete content");
             }
           }
         } else if (result === true) {
-          enqueueSnackbar('Content deleted successfully', { variant: 'success' });
+          enqueueSnackbar("Content deleted successfully", {
+            variant: "success",
+          });
           loadContent(); // Reload content
         } else {
-          throw new Error('Failed to delete content');
+          throw new Error("Failed to delete content");
         }
       } catch (err) {
-        enqueueSnackbar('Failed to delete content', { variant: 'error' });
-        console.error('Error deleting content:', err);
+        enqueueSnackbar("Failed to delete content", { variant: "error" });
+        console.error("Error deleting content:", err);
       }
     }
   };
 
   const handleLogout = () => {
-    router.push('/admin/login');
+    router.push("/admin/login");
   };
 
   // Add menu handlers
-  const handleAddMenuOpen = (event: React.MouseEvent<HTMLElement>, parentId: string) => {
+  const handleAddMenuOpen = (
+    event: React.MouseEvent<HTMLElement>,
+    parentId: string,
+  ) => {
     setAddMenuAnchor(event.currentTarget);
     setAddMenuParentId(parentId);
   };
@@ -503,47 +560,61 @@ export default function AdminPage() {
 
   const handleAddChapter = () => {
     if (addMenuParentId) {
-      handleCreate('chapter', addMenuParentId);
+      handleCreate("chapter", addMenuParentId);
     }
     handleAddMenuClose();
   };
 
   const handleAddArticle = () => {
     if (addMenuParentId) {
-      handleCreate('article', addMenuParentId);
+      handleCreate("article", addMenuParentId);
     }
     handleAddMenuClose();
   };
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'category': return <BookOpenIcon />;
-      case 'chapter': return <FolderIcon />;
-      case 'article': return <FileTextIcon />;
-      default: return null;
+      case "category":
+        return <BookOpenIcon />;
+      case "chapter":
+        return <FolderIcon />;
+      case "article":
+        return <FileTextIcon />;
+      default:
+        return null;
     }
   };
 
-  const getTypeColor = (type: string): 'info' | 'success' | 'secondary' | 'default' => {
+  const getTypeColor = (
+    type: string,
+  ): "info" | "success" | "secondary" | "default" => {
     switch (type) {
-      case 'category': return 'info';
-      case 'chapter': return 'success';
-      case 'article': return 'secondary';
-      default: return 'default';
+      case "category":
+        return "info";
+      case "chapter":
+        return "success";
+      case "article":
+        return "secondary";
+      default:
+        return "default";
     }
   };
 
   const filteredContent = getFilteredContentWithVisibility();
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       {/* Header */}
-      <AppBar position="static" sx={{ bgcolor: 'primary.main' }}>
+      <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             สารานุกรม
           </Typography>
-          <Button color="inherit" onClick={() => router.push('/')} sx={{ mr: 2 }}>
+          <Button
+            color="inherit"
+            onClick={() => router.push("/")}
+            sx={{ mr: 2 }}
+          >
             <ViewIcon sx={{ mr: 1 }} />
             View Site
           </Button>
@@ -556,7 +627,7 @@ export default function AdminPage() {
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Search and Controls */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
           <TextField
             fullWidth
             placeholder="Search content..."
@@ -571,7 +642,9 @@ export default function AdminPage() {
             }}
           />
           <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel id="category-filter-label">Filter by Category</InputLabel>
+            <InputLabel id="category-filter-label">
+              Filter by Category
+            </InputLabel>
             <Select
               labelId="category-filter-label"
               value={selectedCategory}
@@ -582,9 +655,12 @@ export default function AdminPage() {
                 <em>All Categories</em>
               </MenuItem>
               {contentData
-                .filter(item => item.type === 'category')
+                .filter((item) => item.type === "category")
                 .map((category) => (
-                  <MenuItem key={category._id || category.id} value={category._id || category.id}>
+                  <MenuItem
+                    key={category._id || category.id}
+                    value={category._id || category.id}
+                  >
                     {category.title}
                   </MenuItem>
                 ))}
@@ -592,7 +668,9 @@ export default function AdminPage() {
           </FormControl>
           {selectedCategory && (
             <FormControl sx={{ minWidth: 180 }}>
-              <InputLabel id="chapter-filter-label">Filter by Chapter</InputLabel>
+              <InputLabel id="chapter-filter-label">
+                Filter by Chapter
+              </InputLabel>
               <Select
                 labelId="chapter-filter-label"
                 value={selectedChapter}
@@ -605,15 +683,20 @@ export default function AdminPage() {
                 {getAvailableChapters().map((chapter) => {
                   // Build display text showing hierarchy for nested chapters
                   const getChapterHierarchy = (item: ContentNode): string => {
-                    const parent = contentData.find(p => (p._id || p.id) === item.parentId);
-                    if (parent && parent.type === 'chapter') {
+                    const parent = contentData.find(
+                      (p) => (p._id || p.id) === item.parentId,
+                    );
+                    if (parent && parent.type === "chapter") {
                       return `${getChapterHierarchy(parent)} > ${item.title}`;
                     }
                     return item.title;
                   };
-                  
+
                   return (
-                    <MenuItem key={chapter._id || chapter.id} value={chapter._id || chapter.id}>
+                    <MenuItem
+                      key={chapter._id || chapter.id}
+                      value={chapter._id || chapter.id}
+                    >
                       {getChapterHierarchy(chapter)}
                     </MenuItem>
                   );
@@ -624,21 +707,21 @@ export default function AdminPage() {
           <ButtonGroup variant="contained">
             <Button
               startIcon={<BookOpenIcon />}
-              onClick={() => handleCreate('category')}
+              onClick={() => handleCreate("category")}
               sx={{ minWidth: 120 }}
             >
               Add Category
             </Button>
             <Button
               startIcon={<FolderIcon />}
-              onClick={() => handleCreate('chapter')}
+              onClick={() => handleCreate("chapter")}
               sx={{ minWidth: 120 }}
             >
               Add Chapter
             </Button>
             <Button
               startIcon={<FileTextIcon />}
-              onClick={() => handleCreate('article')}
+              onClick={() => handleCreate("article")}
               sx={{ minWidth: 120 }}
             >
               Add Article
@@ -648,7 +731,7 @@ export default function AdminPage() {
 
         {/* Loading State */}
         {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
             <CircularProgress />
           </Box>
         )}
@@ -666,7 +749,7 @@ export default function AdminPage() {
             <Tabs
               value={selectedTab}
               onChange={(_, newValue) => setSelectedTab(newValue)}
-              sx={{ borderBottom: 1, borderColor: 'divider' }}
+              sx={{ borderBottom: 1, borderColor: "divider" }}
             >
               <Tab label="All Content" />
               <Tab label="Categories" />
@@ -676,39 +759,46 @@ export default function AdminPage() {
 
             <TabPanel value={selectedTab} index={selectedTab}>
               {filteredContent.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Box sx={{ textAlign: "center", py: 4 }}>
                   <Typography color="text.secondary">
-                    {searchQuery ? 'No content found matching your search.' : 'No content available. Create some content to get started.'}
+                    {searchQuery
+                      ? "No content found matching your search."
+                      : "No content available. Create some content to get started."}
                   </Typography>
                 </Box>
               ) : (
-                <List sx={{ width: '100%', overflow: 'hidden' }}>
+                <List sx={{ width: "100%", overflow: "hidden" }}>
                   {filteredContent.map((item) => (
-                    <ListItem 
+                    <ListItem
                       key={item._id || item.id}
-                      sx={{ 
+                      sx={{
                         ml: Math.min((item.level || 0) * 2, 8), // Limit max indentation to 8 units
                         mr: 1, // Add right margin to prevent overflow
                         border: 1,
-                        borderColor: 'divider',
+                        borderColor: "divider",
                         borderRadius: 1,
                         mb: 1,
                         maxWidth: `calc(100% - ${Math.min((item.level || 0) * 2, 8) * 8}px)`, // Ensure it doesn't overflow
-                        boxSizing: 'border-box'
+                        boxSizing: "border-box",
                       }}
                     >
-                      <ListItemIcon sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ListItemIcon
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                      >
                         {/* Expand/Collapse Icon */}
                         {hasChildren(item._id || item.id) ? (
                           <IconButton
                             size="small"
-                            onClick={() => toggleNodeExpansion(item._id || item.id)}
+                            onClick={() =>
+                              toggleNodeExpansion(item._id || item.id)
+                            }
                             sx={{ p: 0.5 }}
                           >
-                            {expandedNodes.has(item._id || item.id) ? 
-                              <ExpandMoreIcon fontSize="small" /> : 
+                            {expandedNodes.has(item._id || item.id) ? (
+                              <ExpandMoreIcon fontSize="small" />
+                            ) : (
                               <ChevronRightIcon fontSize="small" />
-                            }
+                            )}
                           </IconButton>
                         ) : (
                           <Box sx={{ width: 24, height: 24 }} /> // Spacer for alignment
@@ -717,56 +807,68 @@ export default function AdminPage() {
                         {getTypeIcon(item.type)}
                       </ListItemIcon>
                       <ListItemText
-                        sx={{ 
+                        sx={{
                           minWidth: 0, // Allow shrinking
-                          overflow: 'hidden'
+                          overflow: "hidden",
                         }}
                         primary={
-                          <Box sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: 1,
-                            flexWrap: 'wrap',
-                            minWidth: 0
-                          }}>
-                            <Typography 
-                              variant="subtitle1" 
-                              sx={{ 
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                              flexWrap: "wrap",
+                              minWidth: 0,
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
                                 minWidth: 0,
-                                wordBreak: 'break-word',
-                                flexShrink: 1
+                                wordBreak: "break-word",
+                                flexShrink: 1,
                               }}
                             >
                               {item.title}
                             </Typography>
-                            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                              <Chip 
-                                label={item.type} 
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 0.5,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <Chip
+                                label={item.type}
                                 color={getTypeColor(item.type)}
                                 size="small"
                               />
                               {/* Show numbered badge */}
-                              {typeof item.badge === 'number' && (
-                                <Chip 
-                                  label={`#${item.badge}`} 
-                                  color="default" 
-                                  size="small" 
+                              {typeof item.badge === "number" && (
+                                <Chip
+                                  label={`#${item.badge}`}
+                                  color="default"
+                                  size="small"
                                 />
                               )}
                               {/* Show coming soon badge */}
-                              {item.badge === 'coming-soon' && (
-                                <Chip label="Coming Soon" color="warning" size="small" />
+                              {item.badge === "coming-soon" && (
+                                <Chip
+                                  label="Coming Soon"
+                                  color="warning"
+                                  size="small"
+                                />
                               )}
                             </Box>
                           </Box>
                         }
                         secondary={
-                          <Typography 
-                            variant="body2" 
-                            sx={{ 
-                              wordBreak: 'break-word',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              wordBreak: "break-word",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
                             }}
                           >
                             {item.summary}
@@ -775,10 +877,13 @@ export default function AdminPage() {
                       />
                       <ListItemSecondaryAction>
                         {/* Add button for categories and chapters */}
-                        {(item.type === 'category' || item.type === 'chapter') && (
+                        {(item.type === "category" ||
+                          item.type === "chapter") && (
                           <IconButton
                             edge="end"
-                            onClick={(e) => handleAddMenuOpen(e, item._id || item.id)}
+                            onClick={(e) =>
+                              handleAddMenuOpen(e, item._id || item.id)
+                            }
                             sx={{ mr: 1 }}
                             color="primary"
                           >
@@ -809,141 +914,194 @@ export default function AdminPage() {
         )}
 
         {/* Edit/Create Dialog */}
-        <Dialog 
-          open={isDialogOpen} 
+        <Dialog
+          open={isDialogOpen}
           onClose={() => setIsDialogOpen(false)}
           maxWidth="md"
           fullWidth
         >
           <DialogTitle>
-            {editingNode?.isNew ? 'Create' : 'Edit'} {editingNode?.type}
+            {editingNode?.isNew ? "Create" : "Edit"} {editingNode?.type}
           </DialogTitle>
           <DialogContent>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
+            <Box
+              sx={{ display: "flex", flexDirection: "column", gap: 3, pt: 1 }}
+            >
+              <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
                   label="Title *"
-                  value={editingNode?.title || ''}
+                  value={editingNode?.title || ""}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   placeholder="Enter title"
                 />
               </Box>
 
               {/* Parent Selection for chapters and articles */}
-              {editingNode?.type !== 'category' && availableParents.length > 0 && (
-                <Autocomplete
-                  fullWidth
-                  options={availableParents}
-                  value={availableParents.find(parent => (parent._id || parent.id) === editingNode?.parentId) || null}
-                  onChange={(event, newValue) => {
-                    setEditingNode(prev => ({ 
-                      ...prev, 
-                      parentId: newValue ? (newValue._id || newValue.id) : '' 
-                    }));
-                  }}
-                  getOptionLabel={(option) => {
-                    // Build display text showing hierarchy
-                    const getParentHierarchy = (item: ContentNode): string => {
-                      const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
-                      if (parentItem) {
-                        return `${getParentHierarchy(parentItem)} > ${item.title}`;
-                      }
-                      return item.title;
-                    };
-                    return `${getParentHierarchy(option)} (${option.type})`;
-                  }}
-                  filterOptions={(options, { inputValue }) => {
-                    // Custom filter that searches in title and hierarchy
-                    return options.filter(option => {
-                      const getParentHierarchy = (item: ContentNode): string => {
-                        const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
+              {editingNode?.type !== "category" &&
+                availableParents.length > 0 && (
+                  <Autocomplete
+                    fullWidth
+                    options={availableParents}
+                    value={
+                      availableParents.find(
+                        (parent) =>
+                          (parent._id || parent.id) === editingNode?.parentId,
+                      ) || null
+                    }
+                    onChange={(event, newValue) => {
+                      setEditingNode((prev) => ({
+                        ...prev,
+                        parentId: newValue ? newValue._id || newValue.id : "",
+                      }));
+                    }}
+                    getOptionLabel={(option) => {
+                      // Build display text showing hierarchy
+                      const getParentHierarchy = (
+                        item: ContentNode,
+                      ): string => {
+                        const parentItem = contentData.find(
+                          (p) => (p._id || p.id) === item.parentId,
+                        );
                         if (parentItem) {
                           return `${getParentHierarchy(parentItem)} > ${item.title}`;
                         }
                         return item.title;
                       };
-                      const fullText = `${getParentHierarchy(option)} ${option.type}`.toLowerCase();
-                      return fullText.includes(inputValue.toLowerCase());
-                    });
-                  }}
-                  renderOption={(props, option) => {
-                    const { key, ...rest } = props;
-                    const getParentHierarchy = (item: ContentNode): string => {
-                      const parentItem = contentData.find(p => (p._id || p.id) === item.parentId);
-                      if (parentItem) {
-                        return `${getParentHierarchy(parentItem)} > ${item.title}`;
-                      }
-                      return item.title;
-                    };
-                    
-                    return (
-                      <Box key={key} component="li" {...rest} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="body1">{getParentHierarchy(option)}</Typography>
+                      return `${getParentHierarchy(option)} (${option.type})`;
+                    }}
+                    filterOptions={(options, { inputValue }) => {
+                      // Custom filter that searches in title and hierarchy
+                      return options.filter((option) => {
+                        const getParentHierarchy = (
+                          item: ContentNode,
+                        ): string => {
+                          const parentItem = contentData.find(
+                            (p) => (p._id || p.id) === item.parentId,
+                          );
+                          if (parentItem) {
+                            return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                          }
+                          return item.title;
+                        };
+                        const fullText =
+                          `${getParentHierarchy(option)} ${option.type}`.toLowerCase();
+                        return fullText.includes(inputValue.toLowerCase());
+                      });
+                    }}
+                    renderOption={(props, option) => {
+                      const { key, ...rest } = props;
+                      const getParentHierarchy = (
+                        item: ContentNode,
+                      ): string => {
+                        const parentItem = contentData.find(
+                          (p) => (p._id || p.id) === item.parentId,
+                        );
+                        if (parentItem) {
+                          return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                        }
+                        return item.title;
+                      };
+
+                      return (
+                        <Box
+                          key={key}
+                          component="li"
+                          {...rest}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body1">
+                              {getParentHierarchy(option)}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={option.type}
+                            size="small"
+                            color={
+                              option.type === "category"
+                                ? "primary"
+                                : "secondary"
+                            }
+                          />
                         </Box>
-                        <Chip 
-                          label={option.type} 
-                          size="small" 
-                          color={option.type === 'category' ? 'primary' : 'secondary'} 
-                        />
-                      </Box>
-                    );
-                  }}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label={`Parent ${editingNode?.type === 'chapter' ? 'Category/Chapter' : 'Category/Chapter'} *`}
-                      placeholder="Search for parent category or chapter..."
-                      helperText="Type to search by name or hierarchy"
-                    />
-                  )}
-                  noOptionsText="No matching parents found"
-                  clearOnBlur
-                  selectOnFocus
-                  handleHomeEndKeys
-                />
-              )}
-              
+                      );
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label={`Parent ${editingNode?.type === "chapter" ? "Category/Chapter" : "Category/Chapter"} *`}
+                        placeholder="Search for parent category or chapter..."
+                        helperText="Type to search by name or hierarchy"
+                      />
+                    )}
+                    noOptionsText="No matching parents found"
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                  />
+                )}
+
               <TextField
                 fullWidth
                 multiline
                 rows={3}
                 label="Summary"
-                value={editingNode?.summary || ''}
-                onChange={(e) => setEditingNode(prev => ({ ...prev, summary: e.target.value }))}
+                value={editingNode?.summary || ""}
+                onChange={(e) =>
+                  setEditingNode((prev) => ({
+                    ...prev,
+                    summary: e.target.value,
+                  }))
+                }
                 placeholder="Brief description"
               />
 
               {/* Author field for articles */}
-              {editingNode?.type === 'article' && (
+              {editingNode?.type === "article" && (
                 <TextField
                   fullWidth
                   label="Author (Optional)"
-                  value={editingNode?.author || ''}
-                  onChange={(e) => setEditingNode(prev => ({ ...prev, author: e.target.value }))}
+                  value={editingNode?.author || ""}
+                  onChange={(e) =>
+                    setEditingNode((prev) => ({
+                      ...prev,
+                      author: e.target.value,
+                    }))
+                  }
                   placeholder="Enter author name"
                   helperText="Optional field for article attribution"
                 />
               )}
 
               {/* Badge/Status Selection for categories and chapters */}
-              {editingNode?.type !== 'article' && (
+              {editingNode?.type !== "article" && (
                 <FormControl fullWidth>
                   <InputLabel id="badge-select-label">Status</InputLabel>
                   <Select
                     labelId="badge-select-label"
-                    value={editingNode?.badge === 'coming-soon' ? 'coming-soon' : 
-                           typeof editingNode?.badge === 'number' ? 'numbered' : 'available'}
+                    value={
+                      editingNode?.badge === "coming-soon"
+                        ? "coming-soon"
+                        : typeof editingNode?.badge === "number"
+                          ? "numbered"
+                          : "available"
+                    }
                     label="Status"
                     onChange={(e) => {
                       const value = e.target.value;
-                      if (value === 'coming-soon') {
-                        setEditingNode(prev => ({ ...prev, badge: 'coming-soon' }));
-                      } else if (value === 'numbered') {
-                        setEditingNode(prev => ({ ...prev, badge: 1 }));
+                      if (value === "coming-soon") {
+                        setEditingNode((prev) => ({
+                          ...prev,
+                          badge: "coming-soon",
+                        }));
+                      } else if (value === "numbered") {
+                        setEditingNode((prev) => ({ ...prev, badge: 1 }));
                       } else {
-                        setEditingNode(prev => ({ ...prev, badge: undefined }));
+                        setEditingNode((prev) => ({
+                          ...prev,
+                          badge: undefined,
+                        }));
                       }
                     }}
                   >
@@ -955,28 +1113,33 @@ export default function AdminPage() {
               )}
 
               {/* Number input for numbered badges */}
-              {editingNode?.type !== 'article' && typeof editingNode?.badge === 'number' && (
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Badge Number"
-                  value={editingNode.badge || 1}
-                  onChange={(e) => setEditingNode(prev => ({ 
-                    ...prev, 
-                    badge: parseInt(e.target.value) || 1 
-                  }))}
-                  inputProps={{ min: 1 }}
-                />
-              )}
+              {editingNode?.type !== "article" &&
+                typeof editingNode?.badge === "number" && (
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Badge Number"
+                    value={editingNode.badge || 1}
+                    onChange={(e) =>
+                      setEditingNode((prev) => ({
+                        ...prev,
+                        badge: parseInt(e.target.value) || 1,
+                      }))
+                    }
+                    inputProps={{ min: 1 }}
+                  />
+                )}
 
-              {editingNode?.type === 'article' && (
+              {editingNode?.type === "article" && (
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>
                     Content
                   </Typography>
                   <RichTextEditor
-                    value={editingNode?.body || ''}
-                    onChange={(value) => setEditingNode(prev => ({ ...prev, body: value }))}
+                    value={editingNode?.body || ""}
+                    onChange={(value) =>
+                      setEditingNode((prev) => ({ ...prev, body: value }))
+                    }
                     placeholder="Enter article content..."
                     height={300}
                   />
@@ -985,10 +1148,12 @@ export default function AdminPage() {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} variant="contained" startIcon={<SaveIcon />}>
+            <Button onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              variant="contained"
+              startIcon={<SaveIcon />}
+            >
               Save
             </Button>
           </DialogActions>
@@ -1000,12 +1165,12 @@ export default function AdminPage() {
           open={Boolean(addMenuAnchor)}
           onClose={handleAddMenuClose}
           anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
+            vertical: "bottom",
+            horizontal: "right",
           }}
           transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
+            vertical: "top",
+            horizontal: "right",
           }}
         >
           <MenuItem onClick={handleAddChapter}>

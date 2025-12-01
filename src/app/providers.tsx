@@ -2,49 +2,49 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CacheProvider } from '@emotion/react';
-import CssBaseline from '@mui/material/CssBaseline';
-import { SnackbarProvider } from 'notistack';
-import createEmotionCache from '@/lib/createEmotionCache';
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { CacheProvider } from "@emotion/react";
+import CssBaseline from "@mui/material/CssBaseline";
+import { SnackbarProvider } from "notistack";
+import createEmotionCache from "@/lib/createEmotionCache";
 
 // Create MUI theme with light green primary color
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#4caf50', // Light green primary color
-      light: '#81c784',
-      dark: '#388e3c',
-      contrastText: '#ffffff',
+      main: "#4caf50", // Light green primary color
+      light: "#81c784",
+      dark: "#388e3c",
+      contrastText: "#ffffff",
     },
     secondary: {
-      main: '#c8e6c9', // Very light green for secondary
-      light: '#f1f8e9',
-      dark: '#a5d6a7',
-      contrastText: '#2e7d32',
+      main: "#c8e6c9", // Very light green for secondary
+      light: "#f1f8e9",
+      dark: "#a5d6a7",
+      contrastText: "#2e7d32",
     },
     background: {
-      default: '#f9fff9', // Very light green background
-      paper: '#ffffff',
+      default: "#f9fff9", // Very light green background
+      paper: "#ffffff",
     },
     success: {
-      main: '#66bb6a',
-      light: '#98ee99',
-      dark: '#338a3e',
+      main: "#66bb6a",
+      light: "#98ee99",
+      dark: "#338a3e",
     },
   },
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontSize: '2rem',
+      fontSize: "2rem",
       fontWeight: 600,
     },
     h2: {
-      fontSize: '1.5rem',
+      fontSize: "1.5rem",
       fontWeight: 600,
     },
     h3: {
-      fontSize: '1.25rem',
+      fontSize: "1.25rem",
       fontWeight: 500,
     },
   },
@@ -52,30 +52,30 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          textTransform: 'none',
+          textTransform: "none",
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: '#4caf50',
+          backgroundColor: "#4caf50",
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         colorPrimary: {
-          backgroundColor: '#81c784',
-          color: '#ffffff',
+          backgroundColor: "#81c784",
+          color: "#ffffff",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
-          '&:hover': {
-            boxShadow: '0 4px 20px rgba(76, 175, 80, 0.15)',
+          "&:hover": {
+            boxShadow: "0 4px 20px rgba(76, 175, 80, 0.15)",
           },
         },
       },
@@ -95,12 +95,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
             retry: false,
           },
         },
-      })
+      }),
   );
 
   // Only create emotion cache on client side
   const [emotionCache] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return createEmotionCache();
     }
     return null;
@@ -110,7 +110,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />
-        <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+        <SnackbarProvider
+          maxSnack={3}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        >
           {children}
         </SnackbarProvider>
       </ThemeProvider>
@@ -119,11 +122,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   // Only use CacheProvider on client side
   if (emotionCache) {
-    return (
-      <CacheProvider value={emotionCache}>
-        {content}
-      </CacheProvider>
-    );
+    return <CacheProvider value={emotionCache}>{content}</CacheProvider>;
   }
 
   return content;

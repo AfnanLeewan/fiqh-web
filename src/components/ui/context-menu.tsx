@@ -18,11 +18,7 @@ export const ContextMenuContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("min-w-32 p-1", className)}
-    {...props}
-  >
+  <div ref={ref} className={cn("min-w-32 p-1", className)} {...props}>
     {children}
   </div>
 ));
@@ -68,18 +64,25 @@ export const ContextMenuSeparator = React.forwardRef<
 ));
 ContextMenuSeparator.displayName = "ContextMenuSeparator";
 
-export const ContextMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+export const ContextMenuShortcut = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLSpanElement>) => (
   <span className={cn("ml-auto text-xs", className)} {...props} />
 );
 ContextMenuShortcut.displayName = "ContextMenuShortcut";
 
-export const ContextMenuGroup = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
+export const ContextMenuGroup = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => <div>{children}</div>;
 
-export const ContextMenuPortal = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
+export const ContextMenuPortal = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => <div>{children}</div>;
 
 export const ContextMenuSub = ({ children }: { children: React.ReactNode }) => (
   <div>{children}</div>
@@ -89,11 +92,7 @@ export const ContextMenuSubContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, children, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("min-w-32 p-1", className)}
-    {...props}
-  >
+  <div ref={ref} className={cn("min-w-32 p-1", className)} {...props}>
     {children}
   </div>
 ));
@@ -107,10 +106,14 @@ export const ContextMenuSubTrigger = React.forwardRef<
 ));
 ContextMenuSubTrigger.displayName = "ContextMenuSubTrigger";
 
-export const ContextMenuRadioGroup = ({ children }: { children: React.ReactNode }) => (
-  <div>{children}</div>
-);
+export const ContextMenuRadioGroup = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => <div>{children}</div>;
 
-export const ContextMenuItemIndicator = ({ children }: { children: React.ReactNode }) => (
-  <span>{children}</span>
-);
+export const ContextMenuItemIndicator = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => <span>{children}</span>;

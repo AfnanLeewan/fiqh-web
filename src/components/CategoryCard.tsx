@@ -1,16 +1,17 @@
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ContentNode } from '@/types/content';
-import { i18n } from '@/lib/i18n';
-import Link from 'next/link';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ContentNode } from "@/types/content";
+import { i18n } from "@/lib/i18n";
+import Link from "next/link";
 
 interface CategoryCardProps {
   category: ContentNode;
 }
 
 export function CategoryCard({ category }: CategoryCardProps) {
-  const isComingSoon = category.badge === 'coming-soon' || !category.children?.length;
+  const isComingSoon =
+    category.badge === "coming-soon" || !category.children?.length;
 
   return (
     <Card className="h-full flex flex-col">
@@ -29,9 +30,7 @@ export function CategoryCard({ category }: CategoryCardProps) {
           </div>
         ) : (
           <Button asChild className="ml-auto" size="sm">
-            <Link href={`/c/${category.slug}`}>
-              {i18n.read}
-            </Link>
+            <Link href={`/c/${category.slug}`}>{i18n.read}</Link>
           </Button>
         )}
       </CardFooter>

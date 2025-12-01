@@ -6,16 +6,9 @@ export type CarouselProps = React.HTMLAttributes<HTMLDivElement> & {
   children?: React.ReactNode;
 };
 
-function Carousel({
-  className,
-  children,
-  ...props
-}: CarouselProps) {
+function Carousel({ className, children, ...props }: CarouselProps) {
   return (
-    <div
-      className={cn("relative w-full", className)}
-      {...props}
-    >
+    <div className={cn("relative w-full", className)} {...props}>
       {children}
     </div>
   );
@@ -27,10 +20,7 @@ function CarouselContent({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div
-      className={cn("flex overflow-hidden", className)}
-      {...props}
-    >
+    <div className={cn("flex overflow-hidden", className)} {...props}>
       {children}
     </div>
   );
@@ -79,4 +69,10 @@ function CarouselNext({
   );
 }
 
-export { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext };
+export {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+};

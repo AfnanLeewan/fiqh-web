@@ -20,7 +20,10 @@ export const FormLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <label
     ref={ref}
-    className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)}
+    className={cn(
+      "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+      className,
+    )}
     {...props}
   />
 ));
@@ -29,9 +32,7 @@ FormLabel.displayName = "FormLabel";
 export const FormControl = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ ...props }, ref) => (
-  <div ref={ref} {...props} />
-));
+>(({ ...props }, ref) => <div ref={ref} {...props} />);
 FormControl.displayName = "FormControl";
 
 export const FormDescription = React.forwardRef<

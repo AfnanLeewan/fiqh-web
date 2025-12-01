@@ -17,7 +17,7 @@ const AspectRatio = React.forwardRef<HTMLDivElement, AspectRatioProps>(
       className={className}
       {...props}
     />
-  )
+  ),
 );
 AspectRatio.displayName = "AspectRatio";
 

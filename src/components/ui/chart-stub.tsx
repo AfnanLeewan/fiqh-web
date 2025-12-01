@@ -7,11 +7,7 @@ export const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn("h-64 w-full", className)}
-    {...props}
-  >
+  <div ref={ref} className={cn("h-64 w-full", className)} {...props}>
     <div className="flex items-center justify-center h-full text-muted-foreground">
       Chart component stub - recharts not installed
     </div>
@@ -25,9 +21,11 @@ export const ChartTooltip = ({ children }: { children?: React.ReactNode }) => (
 );
 
 // Chart tooltip content stub
-export const ChartTooltipContent = ({ children }: { children?: React.ReactNode }) => (
-  <div>{children}</div>
-);
+export const ChartTooltipContent = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => <div>{children}</div>;
 
 // Chart legend stub
 export const ChartLegend = ({ children }: { children?: React.ReactNode }) => (
@@ -35,6 +33,8 @@ export const ChartLegend = ({ children }: { children?: React.ReactNode }) => (
 );
 
 // Chart legend content stub
-export const ChartLegendContent = ({ children }: { children?: React.ReactNode }) => (
-  <div>{children}</div>
-);
+export const ChartLegendContent = ({
+  children,
+}: {
+  children?: React.ReactNode;
+}) => <div>{children}</div>;

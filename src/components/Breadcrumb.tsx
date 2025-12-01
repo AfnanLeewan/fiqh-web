@@ -1,11 +1,6 @@
-import Link from 'next/link';
-import {
-  Breadcrumbs,
-  Typography,
-  Link as MuiLink,
-  Box
-} from '@mui/material';
-import { NavigateNext as ChevronRightIcon } from '@mui/icons-material';
+import Link from "next/link";
+import { Breadcrumbs, Typography, Link as MuiLink, Box } from "@mui/material";
+import { NavigateNext as ChevronRightIcon } from "@mui/icons-material";
 
 interface BreadcrumbItem {
   title: string;
@@ -19,23 +14,23 @@ interface BreadcrumbProps {
 export function Breadcrumb({ items }: BreadcrumbProps) {
   // Ensure items is always an array
   const safeItems = Array.isArray(items) ? items : [];
-  
+
   return (
     <Box sx={{ mb: 3 }}>
-      <Breadcrumbs 
+      <Breadcrumbs
         separator={<ChevronRightIcon fontSize="small" />}
         aria-label="breadcrumb"
-        sx={{ 
-          '& .MuiBreadcrumbs-ol': {
-            fontSize: '0.875rem',
+        sx={{
+          "& .MuiBreadcrumbs-ol": {
+            fontSize: "0.875rem",
           },
         }}
       >
-        {safeItems.map((item, index) => (
+        {safeItems.map((item, index) =>
           index === safeItems.length - 1 ? (
-            <Typography 
+            <Typography
               key={item.href}
-              color="text.primary" 
+              color="text.primary"
               fontSize="0.875rem"
               fontWeight={500}
             >
@@ -50,15 +45,15 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
               color="text.secondary"
               fontSize="0.875rem"
               sx={{
-                '&:hover': {
-                  color: 'primary.main',
+                "&:hover": {
+                  color: "primary.main",
                 },
               }}
             >
               {item.title}
             </MuiLink>
-          )
-        ))}
+          ),
+        )}
       </Breadcrumbs>
     </Box>
   );

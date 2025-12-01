@@ -1,6 +1,6 @@
-import createCache from '@emotion/cache';
+import createCache from "@emotion/cache";
 
-const isBrowser = typeof document !== 'undefined';
+const isBrowser = typeof document !== "undefined";
 
 // On the client side, Create a meta tag at the top of the <head> and set it as insertionPoint.
 // This assures that MUI styles are loaded first.
@@ -15,12 +15,12 @@ export default function createEmotionCache() {
       );
       insertionPoint = emotionInsertionPoint ?? undefined;
     } catch (error) {
-      console.warn('Could not find emotion insertion point:', error);
+      console.warn("Could not find emotion insertion point:", error);
     }
   }
 
-  return createCache({ 
-    key: 'mui-style', 
+  return createCache({
+    key: "mui-style",
     insertionPoint,
     // Prepend styles to ensure they load before other styles
     prepend: true,

@@ -1,32 +1,37 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { connectToDatabase } from '@/lib/mongodb';
-import ContentNode from '@/models/ContentNode';
+import { NextRequest, NextResponse } from "next/server";
+import { connectToDatabase } from "@/lib/mongodb";
+import ContentNode from "@/models/ContentNode";
 
 // Helper function to serialize content with stringified IDs
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function serializeContent(content: any): Record<string, unknown> {
   try {
     let obj: Record<string, unknown>;
-    
+
     // Handle Mongoose documents
-    if (content && typeof content === 'object' && 'toObject' in content && typeof content.toObject === 'function') {
+    if (
+      content &&
+      typeof content === "object" &&
+      "toObject" in content &&
+      typeof content.toObject === "function"
+    ) {
       obj = content.toObject() as Record<string, unknown>;
-    } else if (content && typeof content === 'object') {
+    } else if (content && typeof content === "object") {
       obj = content as Record<string, unknown>;
     } else {
       return { value: content };
     }
-    
+
     // Convert ObjectId to string
     if (obj._id && obj._id.toString) {
       obj._id = obj._id.toString();
     } else if (obj._id) {
       obj._id = String(obj._id);
     }
-    
+
     return obj;
   } catch (error) {
-    console.error('Error serializing content:', error, content);
+    console.error("Error serializing content:", error, content);
     throw error;
   }
 }
@@ -35,15 +40,15 @@ function serializeContent(content: any): Record<string, unknown> {
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
-    
+
     const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search');
-    const parentId = searchParams.get('parentId');
-    const type = searchParams.get('type');
-    const path = searchParams.get('path');
-    
+    const search = searchParams.get("search");
+    const parentId = searchParams.get("parentId");
+    const type = searchParams.get("type");
+    const path = searchParams.get("path");
+
     const query: Record<string, unknown> = { published: true };
-    
+
     if (search) {
       // Search functionality
       const results = await ContentNode.find({
@@ -51,79 +56,99 @@ export async function GET(request: NextRequest) {
           { published: true },
           {
             $or: [
-              { title: { $regex: search, $options: 'i' } },
-              { summary: { $regex: search, $options: 'i' } },
-              { body: { $regex: search, $options: 'i' } }
-            ]
-          }
-        ]
+              { title: { $regex: search, $options: "i" } },
+              { summary: { $regex: search, $options: "i" } },
+              { body: { $regex: search, $options: "i" } },
+            ],
+          },
+        ],
       }).limit(8);
-      
+
       // Build full paths for each result
-      const resultsWithPaths = await Promise.all(results.map(async (node) => {
-        try {
-          const path = await buildNodePath(node);
-          return {
-            ...node.toObject(),
-            path
-          };
-        } catch (error) {
-          console.error('Error building path for node:', node._id, error);
-          return {
-            ...node.toObject(),
-            path: [node.slug]
-          };
-        }
-      }));
-      
+      const resultsWithPaths = await Promise.all(
+        results.map(async (node) => {
+          try {
+            const path = await buildNodePath(node);
+            return {
+              ...node.toObject(),
+              path,
+            };
+          } catch (error) {
+            console.error("Error building path for node:", node._id, error);
+            return {
+              ...node.toObject(),
+              path: [node.slug],
+            };
+          }
+        }),
+      );
+
       return NextResponse.json(resultsWithPaths);
     }
-    
+
     if (path) {
       // Get content by path (e.g., /c/category/chapter/article)
       // Decode the path to handle URL-encoded characters (e.g., Thai characters)
       const decodedPath = decodeURIComponent(path);
-      const pathArray = decodedPath.split('/').filter(Boolean);
-      console.log('API: Looking for path:', path, 'decoded:', decodedPath, 'pathArray:', pathArray);
-      
+      const pathArray = decodedPath.split("/").filter(Boolean);
+      console.log(
+        "API: Looking for path:",
+        path,
+        "decoded:",
+        decodedPath,
+        "pathArray:",
+        pathArray,
+      );
+
       // For single path (category), find by slug with no parent
       if (pathArray.length === 1) {
-        console.log('API: Looking for single-level content with slug:', pathArray[0]);
-        const content = await ContentNode.findOne({ 
+        console.log(
+          "API: Looking for single-level content with slug:",
+          pathArray[0],
+        );
+        const content = await ContentNode.findOne({
           slug: pathArray[0],
           parentId: null,
-          published: true 
+          published: true,
         });
-        
+
         if (!content) {
-          console.log('API: Content not found for slug:', pathArray[0]);
-          return NextResponse.json({ error: 'Content not found' }, { status: 404 });
+          console.log("API: Content not found for slug:", pathArray[0]);
+          return NextResponse.json(
+            { error: "Content not found" },
+            { status: 404 },
+          );
         }
-        
+
         // Get children
-        const children = await ContentNode.find({ 
+        const children = await ContentNode.find({
           parentId: content._id,
-          published: true 
+          published: true,
         }).sort({ order: 1 });
-        
+
         const serializedContent = serializeContent(content);
-        const serializedChildren = children.map(child => serializeContent(child));
-        return NextResponse.json({ content: serializedContent, children: serializedChildren });
+        const serializedChildren = children.map((child) =>
+          serializeContent(child),
+        );
+        return NextResponse.json({
+          content: serializedContent,
+          children: serializedChildren,
+        });
       }
-      
+
       // For multi-level paths, build the path recursively
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let currentContent: any = null;
       let parentId: string | null = null;
-      
+
       // Find the content by traversing the path
       for (let i = 0; i < pathArray.length; i++) {
         const slug = pathArray[i];
-        const query: Record<string, unknown> = { 
+        const query: Record<string, unknown> = {
           slug: slug,
-          published: true 
+          published: true,
         };
-        
+
         if (i === 0) {
           // First level: no parent
           query.parentId = null;
@@ -131,65 +156,87 @@ export async function GET(request: NextRequest) {
           // Subsequent levels: parent is the previous content
           query.parentId = parentId;
         }
-        
-        console.log(`API: Looking for path[${i}] - slug: "${slug}", query:`, query);
+
+        console.log(
+          `API: Looking for path[${i}] - slug: "${slug}", query:`,
+          query,
+        );
         currentContent = await ContentNode.findOne(query);
-        
+
         if (!currentContent) {
-          console.log(`API: Content not found at path[${i}]:`, pathArray.slice(0, i + 1).join('/'));
-          return NextResponse.json({ error: `Content not found at path: ${pathArray.slice(0, i + 1).join('/')}` }, { status: 404 });
+          console.log(
+            `API: Content not found at path[${i}]:`,
+            pathArray.slice(0, i + 1).join("/"),
+          );
+          return NextResponse.json(
+            {
+              error: `Content not found at path: ${pathArray.slice(0, i + 1).join("/")}`,
+            },
+            { status: 404 },
+          );
         }
-        
+
         console.log(`API: Found content at path[${i}]:`, currentContent.title);
         parentId = currentContent._id.toString();
       }
-      
+
       if (!currentContent) {
-        return NextResponse.json({ error: 'Content not found' }, { status: 404 });
+        return NextResponse.json(
+          { error: "Content not found" },
+          { status: 404 },
+        );
       }
-      
+
       // Get children if it's not an article
       let children = [];
-      if (currentContent.type !== 'article') {
-        children = await ContentNode.find({ 
+      if (currentContent.type !== "article") {
+        children = await ContentNode.find({
           parentId: currentContent._id,
-          published: true 
+          published: true,
         }).sort({ order: 1 });
       }
-      
+
       const serializedContent = serializeContent(currentContent);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const serializedChildren = children.map((child: any) => serializeContent(child));
-      return NextResponse.json({ content: serializedContent, children: serializedChildren });
+      const serializedChildren = children.map((child: any) =>
+        serializeContent(child),
+      );
+      return NextResponse.json({
+        content: serializedContent,
+        children: serializedChildren,
+      });
     }
-    
+
     if (parentId) {
       // Get children of a specific parent
-      const children = await ContentNode.find({ 
+      const children = await ContentNode.find({
         parentId: parentId,
-        published: true 
+        published: true,
       }).sort({ order: 1 });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const serializedChildren = children.map((child: any) => serializeContent(child));
+      const serializedChildren = children.map((child: any) =>
+        serializeContent(child),
+      );
       return NextResponse.json(serializedChildren);
     }
-    
+
     if (type) {
       // Get all content of specific type
       query.type = type;
     }
-    
+
     // Default: get all content
     const content = await ContentNode.find(query).sort({ order: 1 });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const serializedContent = content.map((item: any) => serializeContent(item));
+    const serializedContent = content.map((item: any) =>
+      serializeContent(item),
+    );
     return NextResponse.json(serializedContent);
-    
   } catch (error) {
-    console.error('GET /api/content error:', error);
+    console.error("GET /api/content error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch content' },
-      { status: 500 }
+      { error: "Failed to fetch content" },
+      { status: 500 },
     );
   }
 }
@@ -198,31 +245,42 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
-    
+
     const body = await request.json();
-    const { slug, title, summary, type, author, badge, body: content, parentId, order, published = true } = body;
-    
+    const {
+      slug,
+      title,
+      summary,
+      type,
+      author,
+      badge,
+      body: content,
+      parentId,
+      order,
+      published = true,
+    } = body;
+
     // Validate required fields
     if (!slug || !title || !type) {
       return NextResponse.json(
-        { error: 'Missing required fields: slug, title, type' },
-        { status: 400 }
+        { error: "Missing required fields: slug, title, type" },
+        { status: 400 },
       );
     }
-    
+
     // Check if slug already exists at the same level
-    const existingSlug = await ContentNode.findOne({ 
-      slug, 
-      parentId: parentId || null 
+    const existingSlug = await ContentNode.findOne({
+      slug,
+      parentId: parentId || null,
     });
-    
+
     if (existingSlug) {
       return NextResponse.json(
-        { error: 'Slug already exists at this level' },
-        { status: 409 }
+        { error: "Slug already exists at this level" },
+        { status: 409 },
       );
     }
-    
+
     // Create new content node
     const newContent = new ContentNode({
       slug,
@@ -234,17 +292,16 @@ export async function POST(request: NextRequest) {
       body: content,
       parentId: parentId || null,
       order: order || 0,
-      published
+      published,
     });
-    
+
     const savedContent = await newContent.save();
     return NextResponse.json(savedContent, { status: 201 });
-    
   } catch (error) {
-    console.error('POST /api/content error:', error);
+    console.error("POST /api/content error:", error);
     return NextResponse.json(
-      { error: 'Failed to create content' },
-      { status: 500 }
+      { error: "Failed to create content" },
+      { status: 500 },
     );
   }
 }
@@ -253,14 +310,14 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     await connectToDatabase();
-    
+
     const body = await request.json();
     const { _id, ...updateData } = body;
-    
+
     if (!_id) {
       return NextResponse.json(
-        { error: 'Missing content ID' },
-        { status: 400 }
+        { error: "Missing content ID" },
+        { status: 400 },
       );
     }
 
@@ -269,30 +326,26 @@ export async function PUT(request: NextRequest) {
       updateData.badge = null;
     }
 
-    console.log('Updating content with ID:', _id);
-    console.log('Update data:', updateData);
-    
+    console.log("Updating content with ID:", _id);
+    console.log("Update data:", updateData);
+
     const updatedContent = await ContentNode.findByIdAndUpdate(
       _id,
       updateData,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
-    
+
     if (!updatedContent) {
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Content not found" }, { status: 404 });
     }
 
-    console.log('Updated content result:', updatedContent);
+    console.log("Updated content result:", updatedContent);
     return NextResponse.json(updatedContent);
-    
   } catch (error) {
-    console.error('PUT /api/content error:', error);
+    console.error("PUT /api/content error:", error);
     return NextResponse.json(
-      { error: 'Failed to update content' },
-      { status: 500 }
+      { error: "Failed to update content" },
+      { status: 500 },
     );
   }
 }
@@ -301,67 +354,63 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await connectToDatabase();
-    
+
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    
-    console.log('DELETE request - Raw ID:', id);
-    
+    const id = searchParams.get("id");
+
+    console.log("DELETE request - Raw ID:", id);
+
     if (!id) {
-      console.error('DELETE failed: Missing content ID');
+      console.error("DELETE failed: Missing content ID");
       return NextResponse.json(
-        { error: 'Missing content ID' },
-        { status: 400 }
+        { error: "Missing content ID" },
+        { status: 400 },
       );
     }
-    
+
     // Validate that ID is a valid MongoDB ObjectId format
     if (!id.match(/^[0-9a-fA-F]{24}$/)) {
-      console.error('DELETE failed: Invalid ObjectId format - ID:', id);
+      console.error("DELETE failed: Invalid ObjectId format - ID:", id);
       return NextResponse.json(
-        { error: 'Invalid content ID format' },
-        { status: 400 }
+        { error: "Invalid content ID format" },
+        { status: 400 },
       );
     }
-    
+
     // Check if content has children
     const hasChildren = await ContentNode.findOne({ parentId: id });
-    const force = searchParams.get('force') === 'true';
-    
+    const force = searchParams.get("force") === "true";
+
     if (hasChildren && !force) {
-      console.log('DELETE: Content has children - ID:', id);
+      console.log("DELETE: Content has children - ID:", id);
       return NextResponse.json(
-        { error: 'Content has children', hasChildren: true },
-        { status: 409 }
+        { error: "Content has children", hasChildren: true },
+        { status: 409 },
       );
     }
-    
+
     // If force delete is requested, delete all children recursively
     if (force && hasChildren) {
-      console.log('Force deleting content with ID:', id);
+      console.log("Force deleting content with ID:", id);
       // Delete all descendants
       await deleteDescendants(id);
     }
-    
-    console.log('Deleting content with ID:', id);
+
+    console.log("Deleting content with ID:", id);
     const deletedContent = await ContentNode.findByIdAndDelete(id);
-    
+
     if (!deletedContent) {
-      console.error('DELETE failed: Content not found - ID:', id);
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { status: 404 }
-      );
+      console.error("DELETE failed: Content not found - ID:", id);
+      return NextResponse.json({ error: "Content not found" }, { status: 404 });
     }
-    
-    console.log('✅ Content deleted successfully - ID:', id);
-    return NextResponse.json({ message: 'Content deleted successfully' });
-    
+
+    console.log("✅ Content deleted successfully - ID:", id);
+    return NextResponse.json({ message: "Content deleted successfully" });
   } catch (error) {
-    console.error('DELETE /api/content error:', error);
+    console.error("DELETE /api/content error:", error);
     return NextResponse.json(
-      { error: 'Failed to delete content' },
-      { status: 500 }
+      { error: "Failed to delete content" },
+      { status: 500 },
     );
   }
 }
@@ -376,21 +425,25 @@ async function deleteDescendants(parentId: string): Promise<void> {
 }
 
 // Helper function to build full path for a node
-async function buildNodePath(node: { slug: string; parentId?: string | null }): Promise<string[]> {
+async function buildNodePath(node: {
+  slug: string;
+  parentId?: string | null;
+}): Promise<string[]> {
   const path: string[] = [];
   let currentNode: { slug: string; parentId?: string | null } | null = node;
-  
+
   // Build path by traversing up the parent chain
   while (currentNode) {
     path.unshift(currentNode.slug);
-    
+
     if (currentNode.parentId) {
-      const parentNode: { slug: string; parentId?: string | null } | null = await ContentNode.findById(currentNode.parentId);
+      const parentNode: { slug: string; parentId?: string | null } | null =
+        await ContentNode.findById(currentNode.parentId);
       currentNode = parentNode;
     } else {
       break;
     }
   }
-  
+
   return path;
 }

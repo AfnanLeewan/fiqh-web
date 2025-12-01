@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from 'next/dynamic';
-import React from 'react';
+import dynamic from "next/dynamic";
+import React from "react";
 
 const NoSSR = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
