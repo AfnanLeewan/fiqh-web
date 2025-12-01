@@ -20,6 +20,7 @@ import {
 import { Header } from '@/components/Header';
 import { Breadcrumb } from '@/components/Breadcrumb';
 import { Sidebar } from '@/components/Sidebar';
+import { HierarchicalContentView } from '@/components/HierarchicalContentView';
 import { ContentItem } from '@/components/ContentItem';
 import { findNodeByPath, buildBreadcrumbs, getNextPrevArticles } from '@/lib/contentUtils';
 import { ContentNode, ViewMode } from '@/types/content';
@@ -35,7 +36,9 @@ export default function CategoryPage() {
     return 'list';
   });
   const [currentNode, setCurrentNode] = useState<ContentNode | null>(null);
+  const [rootCategory, setRootCategory] = useState<ContentNode | null>(null);
   const [sidebarItems, setSidebarItems] = useState<ContentNode[]>([]);
+  const [hierarchyItems, setHierarchyItems] = useState<ContentNode[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<Array<{ title: string; href: string }>>([]);
   const [navigation, setNavigation] = useState<{ prev: ContentNode | null; next: ContentNode | null }>({
     prev: null,
@@ -66,10 +69,12 @@ export default function CategoryPage() {
         setBreadcrumbs([]);
       }
 
-      // Always get the root category and show only its top-level chapters in sidebar
+      // Always get the root category
       const rootCategoryPath = [fullPath[0]];
-      const rootCategory = fullPath.length === 1 ? node : await findNodeByPath(rootCategoryPath);
-      const topLevelChapters = (rootCategory?.children || []).filter(child => child.type === 'chapter');
+      const rootNode = fullPath.length === 1 ? node : await findNodeByPath(rootCategoryPath);
+      setRootCategory(rootNode);
+      
+      const topLevelChapters = (rootNode?.children || []).filter(child => child.type === 'chapter');
       setSidebarItems(topLevelChapters);
 
       // Handle navigation for articles only
@@ -134,6 +139,8 @@ export default function CategoryPage() {
     );
   }
 
+  const items = currentNode.children || [];
+
   // Article Reader View
   if (currentNode.type === 'article') {
     return (
@@ -150,9 +157,12 @@ export default function CategoryPage() {
             mt: 3,
             alignItems: 'start'
           }}>
-            {/* Sidebar on the left */}
+            {/* Sidebar on the left with hierarchical content view */}
             <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-              <Sidebar items={sidebarItems} basePath={`/c/${(params.slug as string[])[0]}`} />
+              <HierarchicalContentView 
+                items={items.length > 0 ? items : [currentNode]} 
+                basePath={`/c/${(params.slug as string[])[0]}`}
+              />
             </Box>
             
             <Paper elevation={2}>
@@ -268,7 +278,6 @@ export default function CategoryPage() {
   // Explorer View
   const slug = params.slug as string[];
   const basePath = `/c/${slug.join('/')}`;
-  const items = currentNode.children || [];
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -289,9 +298,12 @@ export default function CategoryPage() {
           mt: 3,
           alignItems: 'start'
         }}>
-          {/* Sidebar on the left */}
+          {/* Sidebar on the left with hierarchical content view */}
           <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-            <Sidebar items={sidebarItems} basePath={`/c/${slug[0]}`} />
+            <HierarchicalContentView 
+              items={items.length > 0 ? items : [currentNode]} 
+              basePath={basePath}
+            />
           </Box>
           
           <Box>
@@ -307,6 +319,12 @@ export default function CategoryPage() {
                   {i18n.comingSoon}
                 </Typography>
               </Box>
+            ) : viewMode === 'tree' ? (
+              <HierarchicalContentView 
+                items={rootCategory?.children || []} 
+                basePath={rootCategory ? `/c/${rootCategory.slug}` : '/c'}
+                variant="full"
+              />
             ) : viewMode === 'card' ? (
               <Box sx={{ 
                 display: 'grid', 

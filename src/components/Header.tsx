@@ -29,7 +29,8 @@ import {
   Settings as SettingsIcon,
   Category as CategoryIcon,
   Article as ArticleIcon,
-  Folder as ChapterIcon
+  Folder as ChapterIcon,
+  AccountTree as TreeIcon
 } from '@mui/icons-material';
 import { i18n } from '@/lib/i18n';
 import { searchContent } from '@/lib/contentUtils';
@@ -248,6 +249,9 @@ export function Header({ title = 'สารบัญกรณ์', showViewToggl
                 </ToggleButton>
                 <ToggleButton value="card" aria-label="card view">
                   <GridIcon />
+                </ToggleButton>
+                <ToggleButton value="tree" aria-label="tree view">
+                  <TreeIcon />
                 </ToggleButton>
               </ToggleButtonGroup>
             )}

@@ -81,10 +81,14 @@ export async function GET(request: NextRequest) {
     
     if (path) {
       // Get content by path (e.g., /c/category/chapter/article)
-      const pathArray = path.split('/').filter(Boolean);
+      // Decode the path to handle URL-encoded characters (e.g., Thai characters)
+      const decodedPath = decodeURIComponent(path);
+      const pathArray = decodedPath.split('/').filter(Boolean);
+      console.log('API: Looking for path:', path, 'decoded:', decodedPath, 'pathArray:', pathArray);
       
       // For single path (category), find by slug with no parent
       if (pathArray.length === 1) {
+        console.log('API: Looking for single-level content with slug:', pathArray[0]);
         const content = await ContentNode.findOne({ 
           slug: pathArray[0],
           parentId: null,
@@ -92,6 +96,7 @@ export async function GET(request: NextRequest) {
         });
         
         if (!content) {
+          console.log('API: Content not found for slug:', pathArray[0]);
           return NextResponse.json({ error: 'Content not found' }, { status: 404 });
         }
         
@@ -127,12 +132,15 @@ export async function GET(request: NextRequest) {
           query.parentId = parentId;
         }
         
+        console.log(`API: Looking for path[${i}] - slug: "${slug}", query:`, query);
         currentContent = await ContentNode.findOne(query);
         
         if (!currentContent) {
+          console.log(`API: Content not found at path[${i}]:`, pathArray.slice(0, i + 1).join('/'));
           return NextResponse.json({ error: `Content not found at path: ${pathArray.slice(0, i + 1).join('/')}` }, { status: 404 });
         }
         
+        console.log(`API: Found content at path[${i}]:`, currentContent.title);
         parentId = currentContent._id.toString();
       }
       
