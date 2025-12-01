@@ -10,7 +10,9 @@
     "seed": "tsx scripts/seedDatabase.ts",
     "seed-mockup": "tsx scripts/seedMockupData.ts",
     "check-db": "tsx scripts/checkDatabase.ts",
-    "test-db": "tsx scripts/testConnection.ts"
+    "test-db": "tsx scripts/testConnection.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -71,6 +73,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "prettier": "^3.7.3",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "^5"

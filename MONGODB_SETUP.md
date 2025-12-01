@@ -47,11 +47,13 @@ If you prefer to run MongoDB locally:
 ## After Setup
 
 1. **Seed the Database**
+
    ```bash
    npm run seed
    ```
 
 2. **Start the Development Server**
+
    ```bash
    npm run dev
    ```
