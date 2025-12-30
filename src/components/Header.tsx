@@ -155,7 +155,8 @@ export function Header({
           <Typography
             variant="h6"
             component="h1"
-            sx={{ flexGrow: { xs: 1, md: 0 }, mr: { md: 4 } }}
+            noWrap
+            sx={{ flexGrow: { xs: 1, md: 0 }, mr: { md: 4 }, minWidth: 0 }}
           >
             {title}
           </Typography>
@@ -163,8 +164,8 @@ export function Header({
           <Box sx={{ flexGrow: 1 }} />
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {/* Search Field */}
-            <Box sx={{ position: "relative" }}>
+            {/* Desktop Search Field - Hidden on Mobile */}
+            <Box sx={{ position: "relative", display: { xs: "none", md: "block" } }}>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -198,7 +199,7 @@ export function Header({
                     ),
                   }}
                   sx={{
-                    width: { xs: 200, md: 300 },
+                    width: 300,
                     "& .MuiOutlinedInput-root": {
                       bgcolor: "rgba(255, 255, 255, 0.15)",
                       color: "white",
@@ -220,17 +221,20 @@ export function Header({
                 />
               </form>
 
+              {/* Shared Popper for Desktop */}
               <Popper
                 open={
                   Boolean(searchAnchorEl) &&
                   Array.isArray(searchResults) &&
-                  searchResults.length > 0
+                  searchResults.length > 0 &&
+                  // Ensure we only show this popper if the anchor is the desktop input
+                  (searchAnchorEl as HTMLElement).clientWidth > 250 // Rough check or rely on browser placement
                 }
                 anchorEl={searchAnchorEl}
                 placement="bottom-start"
                 sx={{
                   zIndex: 1300,
-                  width: searchAnchorEl?.offsetWidth || "auto",
+                  width: 300,
                 }}
               >
                 <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
@@ -265,7 +269,7 @@ export function Header({
               </Popper>
             </Box>
 
-            {/* View Toggle */}
+            {/* Desktop View Toggle */}
             {showViewToggle && (
               <ToggleButtonGroup
                 value={viewMode}
@@ -273,12 +277,16 @@ export function Header({
                 onChange={handleViewModeChange}
                 size="small"
                 sx={{
+                  display: { xs: "none", md: "inline-flex" },
                   "& .MuiToggleButton-root": {
                     color: "rgba(255, 255, 255, 0.7)",
                     borderColor: "rgba(255, 255, 255, 0.3)",
                     "&.Mui-selected": {
                       bgcolor: "rgba(255, 255, 255, 0.2)",
                       color: "white",
+                      "&:hover": {
+                        bgcolor: "rgba(255, 255, 255, 0.3)",
+                      },
                     },
                     "&:hover": {
                       bgcolor: "rgba(255, 255, 255, 0.1)",
@@ -314,6 +322,153 @@ export function Header({
             </IconButton>
           </Box>
         </Toolbar>
+
+        {/* Mobile Secondary Row: Search & Toggles */}
+        <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", px: 2, pb: 2, gap: 2 }}>
+          {/* Mobile Search */}
+          <Box sx={{ position: "relative", width: "100%" }}>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (
+                  Array.isArray(searchResults) &&
+                  searchResults.length > 0
+                ) {
+                  handleResultClick(searchResults[0]);
+                }
+              }}
+            >
+              <TextField
+                fullWidth
+                size="small"
+                placeholder={i18n.search}
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={(e) => {
+                  if (
+                    Array.isArray(searchResults) &&
+                    searchResults.length > 0
+                  ) {
+                    setSearchAnchorEl(e.currentTarget);
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: "action.active" }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "rgba(255, 255, 255, 0.15)",
+                    color: "white",
+                    "& fieldset": {
+                      borderColor: "rgba(255, 255, 255, 0.3)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor: "rgba(255, 255, 255, 0.5)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "white",
+                    },
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "rgba(255, 255, 255, 0.7)",
+                    opacity: 1,
+                  },
+                }}
+              />
+            </form>
+
+            {/* Shared Popper for Mobile */}
+            <Popper
+              open={
+                Boolean(searchAnchorEl) &&
+                Array.isArray(searchResults) &&
+                searchResults.length > 0 &&
+                // Ensure we only show this popper if the anchor is the mobile input (check width or rely on click)
+                // Actually, Popper anchors to the element, so as long as anchorEl is correct, it works.
+                // Since state is shared, we rely on onFocus setting the correct anchor.
+                (searchAnchorEl !== null)
+              }
+              anchorEl={searchAnchorEl}
+              placement="bottom-start"
+              sx={{
+                zIndex: 1300,
+                width: searchAnchorEl?.offsetWidth || "auto",
+              }}
+            >
+              <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
+                <Paper
+                  elevation={8}
+                  sx={{ maxHeight: 300, overflow: "auto" }}
+                >
+                  <List dense>
+                    {Array.isArray(searchResults) &&
+                      searchResults.map((result) => (
+                        <ListItemButton
+                          key={result.id}
+                          onClick={() => handleResultClick(result)}
+                        >
+                          <ListItemIcon sx={{ minWidth: 40 }}>
+                            {getResultIcon(result.type)}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={result.title}
+                            secondary={result.type}
+                            primaryTypographyProps={{ fontSize: "0.875rem" }}
+                            secondaryTypographyProps={{
+                              fontSize: "0.75rem",
+                              textTransform: "capitalize",
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                  </List>
+                </Paper>
+              </ClickAwayListener>
+            </Popper>
+          </Box>
+
+          {/* Mobile View Toggles */}
+          {showViewToggle && (
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={handleViewModeChange}
+                size="small"
+                sx={{
+                  width: "100%",
+                  "& .MuiToggleButton-root": {
+                    flex: 1, // Distribute width equally
+                    color: "rgba(255, 255, 255, 0.7)",
+                    borderColor: "rgba(255, 255, 255, 0.3)",
+                    "&.Mui-selected": {
+                      bgcolor: "rgba(255, 255, 255, 0.2)",
+                      color: "white",
+                    },
+                    "&:hover": {
+                      bgcolor: "rgba(255, 255, 255, 0.1)",
+                    },
+                  },
+                }}
+              >
+                <ToggleButton value="list" aria-label="list view">
+                  <ListIcon />
+                </ToggleButton>
+                <ToggleButton value="card" aria-label="card view">
+                  <GridIcon />
+                </ToggleButton>
+                <ToggleButton value="tree" aria-label="tree view">
+                  <TreeIcon />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          )}
+        </Box>
       </Container>
     </AppBar>
   );
