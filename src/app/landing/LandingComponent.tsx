@@ -19,20 +19,18 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel,
   Paper,
-  Grid,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
   Settings as SettingsIcon,
-  MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ContentNode } from "@/types/content";
 import { searchContent, getAllContentByType } from "@/lib/contentUtils";
 import { i18n } from "@/lib/i18n";
+import { getIconForContent } from "@/lib/iconMapper";
 
 export default function LandingComponent() {
   const [categories, setCategories] = useState<ContentNode[]>([]);
@@ -105,6 +103,7 @@ export default function LandingComponent() {
 
   const CategoryCard = ({ category }: { category: ContentNode }) => {
     const isComingSoon = category.badge === "coming-soon";
+    const IconComponent = getIconForContent(category.type, category.slug, category.title);
 
     return (
       <Card
@@ -139,7 +138,7 @@ export default function LandingComponent() {
                 justifyContent: "center",
               }}
             >
-              <MenuBookIcon fontSize="small" />
+              <IconComponent fontSize="small" />
             </Box>
             <Box>
               <Typography

@@ -1,17 +1,16 @@
 import { Card, CardContent, Chip, Typography, Box } from "@mui/material";
-import {
-  Article as FileTextIcon,
-  Folder as FolderIcon,
-} from "@mui/icons-material";
 import { ContentNode, ViewMode } from "@/types/content";
 import { i18n } from "@/lib/i18n";
 import Link from "next/link";
+import { getIconForContent, findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { SvgIconComponent } from "@mui/icons-material";
 
 interface ContentItemProps {
   item: ContentNode;
   viewMode: ViewMode;
   basePath: string;
   onItemClick?: (item: ContentNode) => void;
+  inheritedIcon?: SvgIconComponent; // New prop
 }
 
 export function ContentItem({
@@ -19,10 +18,15 @@ export function ContentItem({
   viewMode,
   basePath,
   onItemClick,
+  inheritedIcon,
 }: ContentItemProps) {
   const isComingSoon = item.badge === "coming-soon";
-  const isArticle = item.type === "article";
   const href = `${basePath}/${item.slug}`;
+
+  // Resolve Icon: Specific -> Inherited -> Default
+  // Update: User requested strict inheritance. Inherited > Specific > Default.
+  const specificIcon = findSpecificIcon(item.slug, item.title);
+  const IconComponent = inheritedIcon || specificIcon || getDefaultIcon(item.type);
 
   const badgeNumber = typeof item.badge === "number" ? item.badge : null;
 
@@ -56,11 +60,10 @@ export function ContentItem({
             </Typography>
           )}
         </Box>
-        {isArticle ? (
-          <FileTextIcon color="primary" sx={{ mt: 0.5 }} />
-        ) : (
-          <FolderIcon color="action" sx={{ mt: 0.5 }} />
-        )}
+        <IconComponent
+          color={item.type === "category" || item.type === "article" ? "primary" : "action"}
+          sx={{ mt: 0.5 }}
+        />
       </Box>
       {isComingSoon && (
         <Box sx={{ mt: 2 }}>
@@ -83,15 +86,15 @@ export function ContentItem({
           height: "100%",
           ...(isComingSoon
             ? {
-                opacity: 0.6,
-              }
+              opacity: 0.6,
+            }
             : {
-                transition: "box-shadow 0.2s ease-in-out",
-                cursor: "pointer",
-                "&:hover": {
-                  boxShadow: 4,
-                },
-              }),
+              transition: "box-shadow 0.2s ease-in-out",
+              cursor: "pointer",
+              "&:hover": {
+                boxShadow: 4,
+              },
+            }),
         }}
       >
         <CardContent sx={{ p: 3 }}>
@@ -122,15 +125,15 @@ export function ContentItem({
         p: 3,
         ...(isComingSoon
           ? {
-              opacity: 0.6,
-            }
+            opacity: 0.6,
+          }
           : {
-              transition: "background-color 0.2s ease-in-out",
-              cursor: "pointer",
-              "&:hover": {
-                bgcolor: "action.hover",
-              },
-            }),
+            transition: "background-color 0.2s ease-in-out",
+            cursor: "pointer",
+            "&:hover": {
+              bgcolor: "action.hover",
+            },
+          }),
       }}
     >
       {isComingSoon ? (

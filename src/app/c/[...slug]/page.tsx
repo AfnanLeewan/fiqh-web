@@ -27,6 +27,7 @@ import {
   buildBreadcrumbs,
   getNextPrevArticles,
 } from "@/lib/contentUtils";
+import { findSpecificIcon } from "@/lib/iconMapper";
 import { ContentNode, ViewMode } from "@/types/content";
 import { i18n } from "@/lib/i18n";
 
@@ -381,6 +382,7 @@ export default function CategoryPage() {
                       viewMode="card"
                       basePath={basePath}
                       onItemClick={handleItemClick}
+                      inheritedIcon={findSpecificIcon(currentNode.slug, currentNode.title) || undefined}
                     />
                   </Box>
                 ))}
@@ -389,12 +391,35 @@ export default function CategoryPage() {
               <Paper elevation={1} sx={{ borderRadius: 2 }}>
                 {items.map((item, index) => (
                   <Box key={item.id}>
-                    <ContentItem
-                      item={item}
-                      viewMode="list"
-                      basePath={basePath}
-                      onItemClick={handleItemClick}
-                    />
+                    {/* ... imports ... */}
+
+                    {/* Inside Component... */}
+                    {(() => {
+                      // Calculate Parent Icon (Inherited Context)
+                      // If we are viewing a Category/Chapter, ITS icon is the one children should inherit
+                      // ONLY if it's a specific icon.
+                      // We need to import findSpecificIcon in this file first.
+                      // But wait, I can't import inside render. I should check if I imported it.
+                      // Assuming I will add the import in next step or combined.
+                      // Let's assume I add import at top.
+
+                      // Correction: The `currentNode` IS the parent of the items in the list.
+                      // So checking `currentNode.slug`.
+                      return null; // Logic placeholder, actual code below
+                    })()}
+
+                    {items.map((item) => (
+                      <Box key={item.id}>
+                        <ContentItem
+                          item={item}
+                          viewMode="list"
+                          basePath={basePath}
+                          onItemClick={handleItemClick}
+                          inheritedIcon={findSpecificIcon(currentNode.slug, currentNode.title) || undefined}
+                        />
+                        {index < items.length - 1 && <Divider />}
+                      </Box>
+                    ))}
                     {index < items.length - 1 && <Divider />}
                   </Box>
                 ))}

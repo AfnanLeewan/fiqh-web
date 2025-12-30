@@ -25,6 +25,9 @@ import {
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 
+import { getIconForContent, findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { SvgIconComponent } from "@mui/icons-material";
+
 interface HierarchicalContentViewProps {
   items: ContentNode[];
   basePath: string;
@@ -76,20 +79,7 @@ export function HierarchicalContentView({
     }
   };
 
-  const getIcon = (type: string) => {
-    switch (type) {
-      case "category":
-        return <FolderOpenIcon fontSize="small" sx={{ color: "#ff9800" }} />;
-      case "chapter":
-        return <LibraryBooksIcon fontSize="small" sx={{ color: "#2196f3" }} />;
-      case "article":
-        return (
-          <ArticleOutlinedIcon fontSize="small" sx={{ color: "#4caf50" }} />
-        );
-      default:
-        return null;
-    }
-  };
+  // getIcon removed in favor of renderIcon logic inside renderNode
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -104,13 +94,36 @@ export function HierarchicalContentView({
     }
   };
 
+  // Helper to render the resolved icon component
+  const renderIcon = (IconComponent: SvgIconComponent, type: string) => {
+    const color = getTypeColor(type);
+    return <IconComponent fontSize="small" sx={{ color }} />;
+  };
+
   const renderNode = (
     node: ContentNode,
     depth: number = 0,
     currentBasePath: string = basePath,
+    parentIcon?: SvgIconComponent, // Inherited icon from parent
   ): React.ReactNode => {
     const href = `${currentBasePath}/${node.slug}`;
     const isActive = pathname === href || pathname.includes(`/${node.slug}`);
+
+    // Resolve Icon Logic:
+    // User Update: Strict inheritance. If parent has an icon, use it.
+    // 1. Inherited (Parent)
+    // 2. Specific (Slug/Title)
+    // 3. Default
+    const specificIcon = findSpecificIcon(node.slug, node.title);
+
+    // The icon to display for THIS node
+    const displayIconComponent = parentIcon || specificIcon || getDefaultIcon(node.type);
+
+    // The icon to pass down to children
+    // If we inherited an icon, pass it down further.
+    // If not, but we have a specific icon, start passing that down.
+    const nextParentIcon = parentIcon || specificIcon;
+
 
     // Determine children source
     const nodeChildren = loadedChildren[node.id] || node.children || [];
@@ -158,7 +171,7 @@ export function HierarchicalContentView({
                   width: "100%",
                 }}
               >
-                {getIcon(node.type)}
+                {renderIcon(displayIconComponent, node.type)}
                 <ListItemText
                   primary={
                     <Typography
@@ -212,15 +225,15 @@ export function HierarchicalContentView({
             "&::before":
               depth > 0
                 ? {
-                    content: '""',
-                    position: "absolute",
-                    left: -20,
-                    top: "50%",
-                    width: 20,
-                    height: 1,
-                    bgcolor: "divider",
-                    display: "none", // Hidden for now, can enable for tree lines
-                  }
+                  content: '""',
+                  position: "absolute",
+                  left: -20,
+                  top: "50%",
+                  width: 20,
+                  height: 1,
+                  bgcolor: "divider",
+                  display: "none", // Hidden for now, can enable for tree lines
+                }
                 : {},
           }}
         >
@@ -251,7 +264,7 @@ export function HierarchicalContentView({
             </Box>
 
             {/* Icon */}
-            {getIcon(node.type)}
+            {renderIcon(displayIconComponent, node.type)}
 
             {/* Title */}
             <Typography
@@ -302,7 +315,7 @@ export function HierarchicalContentView({
         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
           <Box sx={{ mt: 1.5 }}>
             {nodeChildren.length > 0 ? (
-              nodeChildren.map((child) => renderNode(child, depth + 1, href))
+              nodeChildren.map((child) => renderNode(child, depth + 1, href, nextParentIcon))
             ) : isExpanded && !isLoading ? (
               <Typography
                 variant="body2"
