@@ -22,14 +22,11 @@ import {
   InputLabel,
   Paper,
   Grid,
-  Paper,
-  Grid,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
   Settings as SettingsIcon,
-  MenuBook as MenuBookIcon,
   MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -118,8 +115,6 @@ export default function LandingComponent() {
           minHeight: 280,
           opacity: isComingSoon ? 0.8 : 1,
           bgcolor: "background.paper", // Clean white
-          opacity: isComingSoon ? 0.8 : 1,
-          bgcolor: "background.paper", // Clean white
         }}
       >
         <CardContent
@@ -131,9 +126,6 @@ export default function LandingComponent() {
             height: "100%",
           }}
         >
-          {/* Header with Icon and Title */}
-          <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", gap: 2 }}>
-            <Box
           {/* Header with Icon and Title */}
           <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", gap: 2 }}>
             <Box
@@ -176,47 +168,7 @@ export default function LandingComponent() {
                 />
               )}
             </Box>
-                p: 1.5,
-                bgcolor: "secondary.light",
-                borderRadius: "12px",
-                color: "primary.main",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <MenuBookIcon fontSize="small" />
-            </Box>
-            <Box>
-              <Typography
-                variant="h5"
-                component="h3"
-                sx={{
-                  fontSize: "1.25rem",
-                  lineHeight: 1.3,
-                  mb: 1,
-                  color: "primary.main",
-                }}
-              >
-                {category.title}
-              </Typography>
-              {/* ID Badge */}
-              {category.badge && typeof category.badge === "number" && (
-                <Chip
-                  label={`#${category.badge}`}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "0.7rem",
-                    bgcolor: "primary.main",
-                    color: "white",
-                  }}
-                />
-              )}
-            </Box>
           </Box>
-
-
 
           {/* Description */}
           <Typography
@@ -233,16 +185,11 @@ export default function LandingComponent() {
               lineHeight: 1.7, // Relaxed line height
               fontStyle: category.summary ? "normal" : "italic",
               opacity: category.summary ? 1 : 0.7
-              mb: 4, // Increased spacing
-              lineHeight: 1.7, // Relaxed line height
-              fontStyle: category.summary ? "normal" : "italic",
-              opacity: category.summary ? 1 : 0.7
             }}
           >
             {category.summary || "No description available."}
           </Typography>
 
-          {/* Bottom section with action */}
           {/* Bottom section with action */}
           <Box
             sx={{
@@ -250,20 +197,8 @@ export default function LandingComponent() {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              alignItems: "center",
             }}
           >
-            {isComingSoon ? (
-              <Chip
-                label={i18n.comingSoon}
-                variant="outlined"
-                size="small"
-                sx={{
-                  borderColor: "text.secondary",
-                  color: "text.secondary",
-                }}
-              />
-            ) : (
             {isComingSoon ? (
               <Chip
                 label={i18n.comingSoon}
@@ -278,22 +213,12 @@ export default function LandingComponent() {
               <Button
                 variant="text"
                 endIcon={<span style={{ fontSize: "1.2em" }}>→</span>}
-                variant="text"
-                endIcon={<span style={{ fontSize: "1.2em" }}>→</span>}
                 onClick={() => router.push(`/c/${category.slug}`)}
                 sx={{
                   p: 0,
                   minWidth: "auto",
                   color: "primary.main",
-                  p: 0,
-                  minWidth: "auto",
-                  color: "primary.main",
                   "&:hover": {
-                    bgcolor: "transparent",
-                    color: "secondary.dark",
-                    transform: "translateX(4px)",
-                  },
-                  transition: "transform 0.2s",
                     bgcolor: "transparent",
                     color: "secondary.dark",
                     transform: "translateX(4px)",
@@ -400,134 +325,7 @@ export default function LandingComponent() {
             }}
           >
             A comprehensive digital platform for learning and understanding Fiqh.
-      <AppBar position="static" elevation={0} sx={{ borderBottom: "1px solid", borderColor: "divider" }}>
-        <Container maxWidth="xl">
-          <Toolbar disableGutters sx={{ minHeight: { xs: 70, md: 80 }, alignItems: "center" }}>
-            {/* Logo / Title Area */}
-            <Box sx={{ display: "flex", alignItems: "center", mr: { xs: 1, md: 4 }, flex: 1, minWidth: 0 }}>
-              <IconButton
-                color="inherit"
-                aria-label="home"
-                onClick={() => router.push("/")}
-                sx={{ mr: 1, "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
-              >
-                <HomeIcon />
-              </IconButton>
-              <Typography
-                variant="h6"
-                component="div"
-                noWrap
-                sx={{
-                  fontFamily: '"Playfair Display", serif',
-                  letterSpacing: "0.5px",
-                  fontSize: { xs: "1.1rem", md: "1.25rem" },
-                  overflow: "hidden",
-                  textOverflow: "ellipsis"
-                }}
-              >
-                {i18n.title}
-              </Typography>
-            </Box>
-
-            <Box sx={{ flexGrow: 1 }} />
-
-            <IconButton color="inherit" onClick={() => router.push("/admin")}>
-              <SettingsIcon />
-            </IconButton>
-          </Toolbar>
-        </Container>
-      </AppBar>
-
-      {/* Hero Section */}
-      <Box
-        sx={{
-          bgcolor: "primary.main",
-          color: "white",
-          pt: { xs: 6, md: 8 },
-          pb: { xs: 8, md: 10 },
-          position: "relative",
-          overflow: "hidden"
-        }}
-      >
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.1,
-            backgroundImage: "radial-gradient(circle at 20% 150%, #D4AF37 0%, transparent 50%)",
-          }}
-        />
-
-        <Container maxWidth="md" sx={{ position: "relative", textAlign: "center", px: { xs: 2, md: 3 } }}>
-          <Typography
-            variant="h2"
-            component="h1"
-            sx={{
-              color: "white",
-              mb: 2,
-              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
-              fontSize: { xs: "2rem", md: "3rem" }
-            }}
-          >
-            Explore Islamic Jurisprudence
           </Typography>
-          <Typography
-            variant="h6"
-            sx={{
-              color: "secondary.light",
-              mb: { xs: 4, md: 6 },
-              fontWeight: 300,
-              maxWidth: "600px",
-              mx: "auto",
-              fontSize: { xs: "1rem", md: "1.25rem" },
-              lineHeight: 1.4
-            }}
-          >
-            A comprehensive digital platform for learning and understanding Fiqh.
-          </Typography>
-
-          <Paper
-            elevation={4}
-            sx={{
-              p: { xs: 2, sm: "4px 8px" },
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: "center",
-              width: "100%", // Ensure it takes full width of container
-              maxWidth: 700,
-              mx: "auto",
-              borderRadius: { xs: "24px", sm: "50px" },
-              bgcolor: "rgba(255,255,255,0.95)",
-              border: "2px solid",
-              borderColor: "secondary.main",
-              gap: { xs: 2, sm: 0 },
-              boxSizing: "border-box" // Ensure padding doesn't overflow width
-            }}
-          >
-            <Box sx={{ display: "flex", width: "100%", alignItems: "center" }}>
-              <IconButton sx={{ p: "10px", color: "primary.main" }} aria-label="search">
-                <SearchIcon />
-              </IconButton>
-              <TextField
-                sx={{ ml: 1, flex: 1 }}
-                variant="standard"
-                placeholder={i18n.search}
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                InputProps={{
-                  disableUnderline: true,
-                }}
-              />
-            </Box>
-            <FormControl variant="standard" sx={{
-              m: { xs: 0, sm: 1 },
-              minWidth: { xs: "100%", sm: 150 },
-              borderTop: { xs: "1px solid rgba(0,0,0,0.1)", sm: "none" },
-              pt: { xs: 1, sm: 0 }
-            }}>
 
           <Paper
             elevation={4}
@@ -573,17 +371,7 @@ export default function LandingComponent() {
                 onChange={(e) => handleCategoryFilter(e.target.value)}
                 displayEmpty
                 disableUnderline
-                displayEmpty
-                disableUnderline
                 sx={{
-                  color: "text.primary",
-                  fontSize: "0.9rem",
-                  width: "100%",
-                  "& .MuiSelect-select": {
-                    py: 1,
-                    textAlign: { xs: "left", sm: "left" },
-                    pl: { xs: 1, sm: 0 }
-                  }
                   color: "text.primary",
                   fontSize: "0.9rem",
                   width: "100%",
@@ -595,7 +383,6 @@ export default function LandingComponent() {
                 }}
               >
                 <MenuItem value="">
-                  <em style={{ fontStyle: "normal", color: "#5A5A5A" }}>All Categories</em>
                   <em style={{ fontStyle: "normal", color: "#5A5A5A" }}>All Categories</em>
                 </MenuItem>
                 {allCategories.map((category) => (
@@ -611,16 +398,12 @@ export default function LandingComponent() {
           </Paper>
         </Container>
       </Box>
-          </Paper>
-        </Container>
-      </Box>
 
       {/* Main Content */}
       <Container maxWidth="xl" sx={{ py: { xs: 4, md: 6 }, px: { xs: 3, md: 4 }, mt: { xs: 2, md: -4 }, position: "relative", zIndex: 2 }}>
         {/* Loading State */}
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress color="secondary" />
             <CircularProgress color="secondary" />
           </Box>
         )}
@@ -632,17 +415,11 @@ export default function LandingComponent() {
               {error}
             </Alert>
           </Container>
-          <Container maxWidth="sm">
-            <Alert severity="error" sx={{ mb: 3 }}>
-              {error}
-            </Alert>
-          </Container>
         )}
 
         {/* No Results */}
         {!loading && !error && searchQuery && categories.length === 0 && (
           <Box sx={{ textAlign: "center", py: 12 }}>
-            <Typography variant="h6" color="text.secondary">{i18n.noResults}</Typography>
             <Typography variant="h6" color="text.secondary">{i18n.noResults}</Typography>
           </Box>
         )}
@@ -658,11 +435,7 @@ export default function LandingComponent() {
                 md: "repeat(3, 1fr)",
                 lg: "repeat(4, 1fr)",
                 xl: "repeat(4, 1fr)", // Max 4 columns for cleaner look
-                xl: "repeat(4, 1fr)", // Max 4 columns for cleaner look
               },
-              gap: { xs: 3, md: 4 }, // Increased gap for distinct separation
-              alignItems: "stretch",
-              justifyItems: "stretch",
               gap: { xs: 3, md: 4 }, // Increased gap for distinct separation
               alignItems: "stretch",
               justifyItems: "stretch",
