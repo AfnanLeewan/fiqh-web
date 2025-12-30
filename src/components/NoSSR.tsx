@@ -1,12 +1,19 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const NoSSR = ({ children }: { children: React.ReactNode }) => {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
   return <>{children}</>;
 };
 
-export default dynamic(() => Promise.resolve(NoSSR), {
-  ssr: false,
-});
+export default NoSSR;

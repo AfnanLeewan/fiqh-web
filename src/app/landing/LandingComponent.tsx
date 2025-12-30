@@ -20,11 +20,14 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Paper,
+  Grid,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
   Settings as SettingsIcon,
+  MenuBook as MenuBookIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ContentNode } from "@/types/content";
@@ -110,18 +113,8 @@ export default function LandingComponent() {
           display: "flex",
           flexDirection: "column",
           minHeight: 280,
-          maxHeight: 280,
-          opacity: isComingSoon ? 0.7 : 1,
-          transition: "all 0.3s ease-in-out",
-          borderRadius: 2,
-          boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
-          "&:hover": {
-            boxShadow: isComingSoon
-              ? "0 2px 12px rgba(0, 0, 0, 0.08)"
-              : "0 8px 25px rgba(76, 175, 80, 0.15)",
-            cursor: isComingSoon ? "default" : "pointer",
-            transform: isComingSoon ? "none" : "translateY(-4px)",
-          },
+          opacity: isComingSoon ? 0.8 : 1,
+          bgcolor: "background.paper", // Clean white
         }}
       >
         <CardContent
@@ -133,37 +126,50 @@ export default function LandingComponent() {
             height: "100%",
           }}
         >
-          {/* Title with decorative line */}
-          <Box sx={{ mb: 3 }}>
-            <Typography
-              variant="h5"
-              component="h3"
-              fontWeight={700}
-              sx={{
-                fontSize: "1.3rem",
-                lineHeight: 1.3,
-                minHeight: "3.4rem", // Space for 2-3 lines
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                mb: 2,
-                color: "#2e2e2e",
-              }}
-            >
-              {category.title}
-            </Typography>
-            {/* Decorative line under title */}
+          {/* Header with Icon and Title */}
+          <Box sx={{ mb: 3, display: "flex", alignItems: "flex-start", gap: 2 }}>
             <Box
               sx={{
-                width: "60px",
-                height: "4px",
-                bgcolor: "#4caf50", // Green instead of orange
-                borderRadius: "2px",
+                p: 1.5,
+                bgcolor: "secondary.light",
+                borderRadius: "12px",
+                color: "primary.main",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
+            >
+              <MenuBookIcon fontSize="small" />
+            </Box>
+            <Box>
+              <Typography
+                variant="h5"
+                component="h3"
+                sx={{
+                  fontSize: "1.25rem",
+                  lineHeight: 1.3,
+                  mb: 1,
+                  color: "primary.main",
+                }}
+              >
+                {category.title}
+              </Typography>
+              {/* ID Badge */}
+              {category.badge && typeof category.badge === "number" && (
+                <Chip
+                  label={`#${category.badge}`}
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: "0.7rem",
+                    bgcolor: "primary.main",
+                    color: "white",
+                  }}
+                />
+              )}
+            </Box>
           </Box>
+
 
           {/* Description */}
           <Typography
@@ -176,75 +182,49 @@ export default function LandingComponent() {
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              lineHeight: 1.6,
-              fontSize: "0.95rem",
-              minHeight: "4.8rem",
-              maxHeight: "4.8rem",
-              mb: 3,
+              mb: 4, // Increased spacing
+              lineHeight: 1.7, // Relaxed line height
+              fontStyle: category.summary ? "normal" : "italic",
+              opacity: category.summary ? 1 : 0.7
             }}
           >
             {category.summary || "No description available."}
           </Typography>
 
-          {/* Bottom section with badges and button */}
+          {/* Bottom section with action */}
           <Box
             sx={{
               mt: "auto",
               display: "flex",
-              flexDirection: "row",
               justifyContent: "space-between",
-              alignItems: "flex-end",
-              gap: 2,
+              alignItems: "center",
             }}
           >
-            {/* Badge Section */}
-            <Box sx={{ flex: 1 }}>
-              {isComingSoon ? (
-                <Chip
-                  label={i18n.comingSoon}
-                  variant="outlined"
-                  size="small"
-                  sx={{
-                    borderColor: "#4caf50",
-                    color: "#4caf50",
-                    fontWeight: 500,
-                  }}
-                />
-              ) : category.badge && typeof category.badge === "number" ? (
-                <Chip
-                  label={`#${category.badge}`}
-                  variant="filled"
-                  size="small"
-                  sx={{
-                    bgcolor: "#4caf50",
-                    color: "white",
-                    fontWeight: 600,
-                  }}
-                />
-              ) : null}
-            </Box>
-
-            {/* Action Button - Bottom Right */}
-            {!isComingSoon && (
-              <Button
-                variant="contained"
+            {isComingSoon ? (
+              <Chip
+                label={i18n.comingSoon}
+                variant="outlined"
                 size="small"
+                sx={{
+                  borderColor: "text.secondary",
+                  color: "text.secondary",
+                }}
+              />
+            ) : (
+              <Button
+                variant="text"
+                endIcon={<span style={{ fontSize: "1.2em" }}>→</span>}
                 onClick={() => router.push(`/c/${category.slug}`)}
                 sx={{
-                  bgcolor: "#4caf50",
-                  color: "white",
-                  fontWeight: 500,
-                  fontSize: "0.8rem",
-                  py: 0.8,
-                  px: 2,
-                  minWidth: "60px",
-                  borderRadius: 1.5,
-                  textTransform: "none",
+                  p: 0,
+                  minWidth: "auto",
+                  color: "primary.main",
                   "&:hover": {
-                    bgcolor: "#45a049",
-                    transform: "translateY(-1px)",
-                    boxShadow: "0 3px 8px rgba(76, 175, 80, 0.3)",
+                    bgcolor: "transparent",
+                    color: "secondary.dark",
+                    transform: "translateX(4px)",
                   },
+                  transition: "transform 0.2s",
                 }}
               >
                 {i18n.read}
@@ -259,87 +239,152 @@ export default function LandingComponent() {
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       {/* Header */}
-      <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="home"
-            sx={{ mr: 2 }}
-            onClick={() => router.push("/")}
-          >
-            <HomeIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {i18n.title}
-          </Typography>
-          <Box sx={{ flexGrow: 1, mx: 3, display: "flex", gap: 2 }}>
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder={i18n.search}
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              size="small"
-              sx={{
-                bgcolor: "rgba(255, 255, 255, 0.15)",
-                borderRadius: 1,
-                "& .MuiOutlinedInput-root": {
-                  color: "white",
-                  "& fieldset": {
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: "rgba(255, 255, 255, 0.5)",
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: "white",
-                  },
-                },
-                "& .MuiInputBase-input::placeholder": {
-                  color: "rgba(255, 255, 255, 0.7)",
-                  opacity: 1,
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <FormControl size="small" sx={{ minWidth: 150 }}>
-              <InputLabel
+      <AppBar position="static" elevation={0} sx={{ borderBottom: "1px solid", borderColor: "divider" }}>
+        <Container maxWidth="xl">
+          <Toolbar disableGutters sx={{ minHeight: { xs: 70, md: 80 }, alignItems: "center" }}>
+            {/* Logo / Title Area */}
+            <Box sx={{ display: "flex", alignItems: "center", mr: { xs: 1, md: 4 }, flex: 1, minWidth: 0 }}>
+              <IconButton
+                color="inherit"
+                aria-label="home"
+                onClick={() => router.push("/")}
+                sx={{ mr: 1, "&:hover": { bgcolor: "rgba(255,255,255,0.1)" } }}
+              >
+                <HomeIcon />
+              </IconButton>
+              <Typography
+                variant="h6"
+                component="div"
+                noWrap
                 sx={{
-                  color: "rgba(255, 255, 255, 0.7)",
-                  "&.Mui-focused": { color: "white" },
+                  fontFamily: '"Playfair Display", serif',
+                  letterSpacing: "0.5px",
+                  fontSize: { xs: "1.1rem", md: "1.25rem" },
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
                 }}
               >
-                Category
-              </InputLabel>
+                {i18n.title}
+              </Typography>
+            </Box>
+
+            <Box sx={{ flexGrow: 1 }} />
+
+            <IconButton color="inherit" onClick={() => router.push("/admin")}>
+              <SettingsIcon />
+            </IconButton>
+          </Toolbar>
+        </Container>
+      </AppBar>
+
+      {/* Hero Section */}
+      <Box
+        sx={{
+          bgcolor: "primary.main",
+          color: "white",
+          pt: { xs: 6, md: 8 },
+          pb: { xs: 8, md: 10 },
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.1,
+            backgroundImage: "radial-gradient(circle at 20% 150%, #D4AF37 0%, transparent 50%)",
+          }}
+        />
+
+        <Container maxWidth="md" sx={{ position: "relative", textAlign: "center", px: { xs: 2, md: 3 } }}>
+          <Typography
+            variant="h2"
+            component="h1"
+            sx={{
+              color: "white",
+              mb: 2,
+              textShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              fontSize: { xs: "2rem", md: "3rem" }
+            }}
+          >
+            Explore Islamic Jurisprudence
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              color: "secondary.light",
+              mb: { xs: 4, md: 6 },
+              fontWeight: 300,
+              maxWidth: "600px",
+              mx: "auto",
+              fontSize: { xs: "1rem", md: "1.25rem" },
+              lineHeight: 1.4
+            }}
+          >
+            A comprehensive digital platform for learning and understanding Fiqh.
+          </Typography>
+
+          <Paper
+            elevation={4}
+            sx={{
+              p: { xs: 2, sm: "4px 8px" },
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              alignItems: "center",
+              width: "100%", // Ensure it takes full width of container
+              maxWidth: 700,
+              mx: "auto",
+              borderRadius: { xs: "24px", sm: "50px" },
+              bgcolor: "rgba(255,255,255,0.95)",
+              border: "2px solid",
+              borderColor: "secondary.main",
+              gap: { xs: 2, sm: 0 },
+              boxSizing: "border-box" // Ensure padding doesn't overflow width
+            }}
+          >
+            <Box sx={{ display: "flex", width: "100%", alignItems: "center" }}>
+              <IconButton sx={{ p: "10px", color: "primary.main" }} aria-label="search">
+                <SearchIcon />
+              </IconButton>
+              <TextField
+                sx={{ ml: 1, flex: 1 }}
+                variant="standard"
+                placeholder={i18n.search}
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                InputProps={{
+                  disableUnderline: true,
+                }}
+              />
+            </Box>
+            <FormControl variant="standard" sx={{
+              m: { xs: 0, sm: 1 },
+              minWidth: { xs: "100%", sm: 150 },
+              borderTop: { xs: "1px solid rgba(0,0,0,0.1)", sm: "none" },
+              pt: { xs: 1, sm: 0 }
+            }}>
               <Select
                 value={selectedCategory}
                 onChange={(e) => handleCategoryFilter(e.target.value)}
-                label="Category"
+                displayEmpty
+                disableUnderline
                 sx={{
-                  color: "white",
-                  "& .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255, 255, 255, 0.3)",
-                  },
-                  "&:hover .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "rgba(255, 255, 255, 0.5)",
-                  },
-                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                    borderColor: "white",
-                  },
-                  "& .MuiSelect-icon": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
+                  color: "text.primary",
+                  fontSize: "0.9rem",
+                  width: "100%",
+                  "& .MuiSelect-select": {
+                    py: 1,
+                    textAlign: { xs: "left", sm: "left" },
+                    pl: { xs: 1, sm: 0 }
+                  }
                 }}
               >
                 <MenuItem value="">
-                  <em>All Categories</em>
+                  <em style={{ fontStyle: "normal", color: "#5A5A5A" }}>All Categories</em>
                 </MenuItem>
                 {allCategories.map((category) => (
                   <MenuItem
@@ -351,33 +396,32 @@ export default function LandingComponent() {
                 ))}
               </Select>
             </FormControl>
-          </Box>
-          <IconButton color="inherit" onClick={() => router.push("/admin")}>
-            <SettingsIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+          </Paper>
+        </Container>
+      </Box>
 
       {/* Main Content */}
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 4, md: 6 }, px: { xs: 3, md: 4 }, mt: { xs: 2, md: -4 }, position: "relative", zIndex: 2 }}>
         {/* Loading State */}
         {loading && (
           <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-            <CircularProgress />
+            <CircularProgress color="secondary" />
           </Box>
         )}
 
         {/* Error State */}
         {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
+          <Container maxWidth="sm">
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {error}
+            </Alert>
+          </Container>
         )}
 
         {/* No Results */}
         {!loading && !error && searchQuery && categories.length === 0 && (
           <Box sx={{ textAlign: "center", py: 12 }}>
-            <Typography color="text.secondary">{i18n.noResults}</Typography>
+            <Typography variant="h6" color="text.secondary">{i18n.noResults}</Typography>
           </Box>
         )}
 
@@ -391,11 +435,11 @@ export default function LandingComponent() {
                 sm: "repeat(2, 1fr)",
                 md: "repeat(3, 1fr)",
                 lg: "repeat(4, 1fr)",
-                xl: "repeat(5, 1fr)", // More columns for extra large screens
+                xl: "repeat(4, 1fr)", // Max 4 columns for cleaner look
               },
-              gap: 3,
-              alignItems: "stretch", // Ensure all cards stretch to same height
-              justifyItems: "stretch", // Ensure all cards stretch to same width
+              gap: { xs: 3, md: 4 }, // Increased gap for distinct separation
+              alignItems: "stretch",
+              justifyItems: "stretch",
             }}
           >
             {categories.map((category) => (

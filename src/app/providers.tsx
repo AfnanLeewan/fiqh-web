@@ -2,86 +2,142 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ThemeProvider, createTheme, responsiveFontSizes } from "@mui/material/styles";
 import { CacheProvider } from "@emotion/react";
 import CssBaseline from "@mui/material/CssBaseline";
 import { SnackbarProvider } from "notistack";
 import createEmotionCache from "@/lib/createEmotionCache";
 
 // Create MUI theme with light green primary color
-const theme = createTheme({
+let theme = createTheme({
   palette: {
     primary: {
-      main: "#4caf50", // Light green primary color
-      light: "#81c784",
-      dark: "#388e3c",
-      contrastText: "#ffffff",
+      main: "#1A4D2E", // Deep Forest Green
+      light: "#2E8B57",
+      dark: "#0F2E1B",
+      contrastText: "#FFFFFF",
     },
     secondary: {
-      main: "#c8e6c9", // Very light green for secondary
-      light: "#f1f8e9",
-      dark: "#a5d6a7",
-      contrastText: "#2e7d32",
+      main: "#D4AF37", // Gold/Bronze
+      light: "#F4D06F",
+      dark: "#997C22",
+      contrastText: "#1A4D2E",
     },
     background: {
-      default: "#f9fff9", // Very light green background
-      paper: "#ffffff",
+      default: "#FAF9F6", // Cream/Off-White
+      paper: "#FFFFFF",
+    },
+    text: {
+      primary: "#1A1A1A",
+      secondary: "#5A5A5A",
     },
     success: {
-      main: "#66bb6a",
-      light: "#98ee99",
-      dark: "#338a3e",
+      main: "#2E8B57",
+      light: "#4CAF50",
+      dark: "#1B5E20",
     },
+    divider: "rgba(212, 175, 55, 0.2)", // Subtle gold divider
   },
   typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Lato", "Roboto", "Helvetica", "Arial", sans-serif',
     h1: {
-      fontSize: "2rem",
-      fontWeight: 600,
+      fontFamily: '"Playfair Display", "Times New Roman", serif',
+      fontSize: "2.5rem",
+      fontWeight: 700,
+      color: "#1A4D2E",
     },
     h2: {
-      fontSize: "1.5rem",
+      fontFamily: '"Playfair Display", "Times New Roman", serif',
+      fontSize: "2rem",
       fontWeight: 600,
+      color: "#1A4D2E",
     },
     h3: {
-      fontSize: "1.25rem",
-      fontWeight: 500,
+      fontFamily: '"Playfair Display", "Times New Roman", serif',
+      fontSize: "1.75rem",
+      fontWeight: 600,
+      color: "#1A4D2E",
     },
+    h4: {
+      fontFamily: '"Playfair Display", "Times New Roman", serif',
+      fontSize: "1.5rem",
+      fontWeight: 600,
+      color: "#1A4D2E",
+    },
+    h5: {
+      fontFamily: '"Playfair Display", "Times New Roman", serif',
+      fontSize: "1.25rem",
+      fontWeight: 600,
+      color: "#1A4D2E",
+    },
+    subtitle1: {
+      fontFamily: '"Lato", sans-serif',
+      fontSize: "1rem",
+      color: "#5A5A5A",
+    },
+    body1: {
+      fontFamily: '"Lato", sans-serif',
+      fontSize: "1rem",
+      lineHeight: 1.6,
+    },
+  },
+  shape: {
+    borderRadius: 8,
   },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
           textTransform: "none",
+          fontWeight: 600,
+          borderRadius: "50px", // Pill shape
+          padding: "8px 24px",
+        },
+        contained: {
+          boxShadow: "none",
+          "&:hover": {
+            boxShadow: "0 4px 12px rgba(26, 77, 46, 0.2)",
+          },
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: "#4caf50",
+          backgroundColor: "#1A4D2E",
+          boxShadow: "0 2px 12px rgba(0, 0, 0, 0.08)",
         },
       },
     },
     MuiChip: {
       styleOverrides: {
-        colorPrimary: {
-          backgroundColor: "#81c784",
-          color: "#ffffff",
+        root: {
+          fontWeight: 500,
+        },
+        filled: {
+          backgroundColor: "#F4F1EA",
+          color: "#1A4D2E",
         },
       },
     },
     MuiCard: {
       styleOverrides: {
         root: {
+          border: "1px solid #E2E8F0",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+          transition: "all 0.3s ease-in-out",
           "&:hover": {
-            boxShadow: "0 4px 20px rgba(76, 175, 80, 0.15)",
+            transform: "translateY(-4px)",
+            boxShadow: "0 12px 24px rgba(26, 77, 46, 0.1)",
+            borderColor: "rgba(212, 175, 55, 0.3)", // Subtle gold border on hover
           },
         },
       },
     },
   },
 });
+
+theme = responsiveFontSizes(theme);
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(

@@ -173,28 +173,7 @@ export default function AdminLogin() {
 
             <Divider sx={{ my: 3 }} />
 
-            {/* Demo Credentials */}
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <Typography variant="body2" sx={{ mb: 1 }}>
-                <strong>Demo Credentials:</strong>
-              </Typography>
-              <Typography
-                variant="body2"
-                component="div"
-                sx={{ fontFamily: "monospace" }}
-              >
-                Username: <strong>admin</strong>
-                <br />
-                Password: <strong>password123</strong>
-              </Typography>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
-              >
-                * Credentials are configured via environment variables
-              </Typography>
-            </Alert>
+
 
             {/* Back to Home */}
             <Box sx={{ textAlign: "center" }}>
