@@ -6,7 +6,6 @@ import {
     Mosque,
     Star,
     Gavel,
-    Description,
     Folder,
     Article,
     School,

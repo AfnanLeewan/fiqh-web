@@ -8,7 +8,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  InputAdornment,
   TextField,
   Card,
   CardContent,

@@ -19,7 +19,6 @@ import {
 } from "@mui/icons-material";
 import { Header } from "@/components/Header";
 import { Breadcrumb } from "@/components/Breadcrumb";
-import { Sidebar } from "@/components/Sidebar";
 import { HierarchicalContentView } from "@/components/HierarchicalContentView";
 import { ContentItem } from "@/components/ContentItem";
 import {
@@ -42,8 +41,6 @@ export default function CategoryPage() {
   });
   const [currentNode, setCurrentNode] = useState<ContentNode | null>(null);
   const [rootCategory, setRootCategory] = useState<ContentNode | null>(null);
-  const [sidebarItems, setSidebarItems] = useState<ContentNode[]>([]);
-  const [hierarchyItems, setHierarchyItems] = useState<ContentNode[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<
     Array<{ title: string; href: string }>
   >([]);
@@ -88,7 +85,6 @@ export default function CategoryPage() {
       const topLevelChapters = (rootNode?.children || []).filter(
         (child) => child.type === "chapter",
       );
-      setSidebarItems(topLevelChapters);
 
       // Handle navigation for articles only
       if (node.type === "article") {

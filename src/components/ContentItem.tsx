@@ -2,7 +2,7 @@ import { Card, CardContent, Chip, Typography, Box } from "@mui/material";
 import { ContentNode, ViewMode } from "@/types/content";
 import { i18n } from "@/lib/i18n";
 import Link from "next/link";
-import { getIconForContent, findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
 import { SvgIconComponent } from "@mui/icons-material";
 
 interface ContentItemProps {

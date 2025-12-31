@@ -19,13 +19,10 @@ import {
 import { getChildrenOfNode } from "@/lib/contentUtils";
 import {
   ExpandMore as ExpandMoreIcon,
-  LibraryBooks as LibraryBooksIcon,
-  FolderOpen as FolderOpenIcon,
-  ArticleOutlined as ArticleOutlinedIcon,
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 
-import { getIconForContent, findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
 import { SvgIconComponent } from "@mui/icons-material";
 
 interface HierarchicalContentViewProps {
@@ -122,7 +119,7 @@ export function HierarchicalContentView({
     // The icon to pass down to children
     // If we inherited an icon, pass it down further.
     // If not, but we have a specific icon, start passing that down.
-    const nextParentIcon = parentIcon || specificIcon;
+    const nextParentIcon = parentIcon || specificIcon || undefined;
 
 
     // Determine children source
