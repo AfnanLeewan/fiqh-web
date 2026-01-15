@@ -352,7 +352,7 @@ export function HierarchicalContentView({
         }}
       >
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, pl: 1 }}>
-          Contents
+          เนื้อหา
         </Typography>
         <List dense sx={{ "& .MuiListItem-root": { mb: 0 } }}>
           {items.map((item) => renderNode(item))}

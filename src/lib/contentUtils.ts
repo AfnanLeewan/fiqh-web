@@ -195,8 +195,10 @@ export async function deleteContent(
 
 // Helper functions
 function buildPathFromNode(node: ContentNode & { path?: string[] }): string {
-  const pathParts = [...(node.path || []), node.slug];
-  return `/c/${pathParts.join("/")}`;
+  if (node.path && node.path.length > 0) {
+    return `/c/${node.path.join("/")}`;
+  }
+  return `/c/${node.slug}`;
 }
 
 export async function getAllArticlesInChapter(

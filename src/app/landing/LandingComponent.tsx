@@ -20,15 +20,25 @@ import {
   FormControl,
   Paper,
   Divider,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Popper,
+  ClickAwayListener,
+  InputAdornment,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
   Settings as SettingsIcon,
+  Category as CategoryIcon,
+  Article as ArticleIcon,
+  Folder as ChapterIcon,
   Lock as LockIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-import { ContentNode } from "@/types/content";
+import { ContentNode, SearchResult } from "@/types/content";
 import { searchContent, getAllContentByType } from "@/lib/contentUtils";
 import { i18n } from "@/lib/i18n";
 import { getIconForContent } from "@/lib/iconMapper";
@@ -39,6 +49,8 @@ export default function LandingComponent() {
   const [allCategories, setAllCategories] = useState<ContentNode[]>([]); // Store all categories
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>(""); // Category filter
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchAnchorEl, setSearchAnchorEl] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -63,8 +75,15 @@ export default function LandingComponent() {
     loadCategories();
   }, []);
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const query = event.target.value;
     setSearchQuery(query);
+    if (query.trim()) {
+      setSearchAnchorEl(event.currentTarget as HTMLElement);
+    } else {
+      setSearchAnchorEl(null);
+      setSearchResults([]);
+    }
     filterCategories(query, selectedCategory);
   };
 
@@ -80,12 +99,15 @@ export default function LandingComponent() {
       // Apply search filter
       if (query.trim()) {
         const results = await searchContent(query);
+        setSearchResults(results);
         const categoryIds = new Set(
           results.filter((r) => r.type === "category").map((r) => r.id),
         );
         filteredCategories = allCategories.filter((cat) =>
           categoryIds.has(cat._id || cat.id),
         );
+      } else {
+        setSearchResults([]);
       }
 
       // Apply category filter
@@ -100,6 +122,25 @@ export default function LandingComponent() {
       console.error("Filter error:", err);
       // Fallback to show all categories
       setCategories(allCategories);
+    }
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    router.push(result.path);
+    setSearchAnchorEl(null);
+    setSearchQuery("");
+  };
+
+  const getResultIcon = (type: string) => {
+    switch (type) {
+      case "category":
+        return <CategoryIcon color="primary" />;
+      case "chapter":
+        return <ChapterIcon color="action" />;
+      case "article":
+        return <ArticleIcon color="primary" />;
+      default:
+        return <ArticleIcon />;
     }
   };
 
@@ -356,11 +397,55 @@ export default function LandingComponent() {
                 variant="standard"
                 placeholder={i18n.search}
                 value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
+                onChange={handleSearch}
+                onFocus={(e) => {
+                  if (searchQuery.trim() && searchResults.length > 0) {
+                    setSearchAnchorEl(e.currentTarget);
+                  }
+                }}
                 InputProps={{
                   disableUnderline: true,
                 }}
               />
+              <Popper
+                open={Boolean(searchAnchorEl) && searchResults.length > 0}
+                anchorEl={searchAnchorEl}
+                placement="bottom-start"
+                sx={{
+                  zIndex: 1300,
+                  width: "100%",
+                  maxWidth: 500,
+                }}
+              >
+                <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
+                  <Paper
+                    elevation={8}
+                    sx={{ maxHeight: 300, overflow: "auto", mt: 1, borderRadius: 2 }}
+                  >
+                    <List dense>
+                      {searchResults.map((result) => (
+                        <ListItemButton
+                          key={result.id}
+                          onClick={() => handleResultClick(result)}
+                        >
+                          <ListItemIcon sx={{ minWidth: 40 }}>
+                            {getResultIcon(result.type)}
+                          </ListItemIcon>
+                          <ListItemText
+                            primary={result.title}
+                            secondary={result.type}
+                            primaryTypographyProps={{ fontSize: "0.875rem" }}
+                            secondaryTypographyProps={{
+                              fontSize: "0.75rem",
+                              textTransform: "capitalize",
+                            }}
+                          />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Paper>
+                </ClickAwayListener>
+              </Popper>
             </Box>
             <FormControl variant="standard" sx={{
               m: { xs: 0, sm: 1 },
