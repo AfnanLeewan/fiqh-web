@@ -22,7 +22,7 @@ import {
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 
-import { findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { findSpecificIcon, getDefaultIcon, getIconByName } from "@/lib/iconMapper";
 import { SvgIconComponent } from "@mui/icons-material";
 
 interface HierarchicalContentViewProps {
@@ -107,19 +107,23 @@ export function HierarchicalContentView({
     const isActive = pathname === href || pathname.includes(`/${node.slug}`);
 
     // Resolve Icon Logic:
-    // User Update: Strict inheritance. If parent has an icon, use it.
-    // 1. Inherited (Parent)
-    // 2. Specific (Slug/Title)
-    // 3. Default
+    // 1. Explicit (Admin Configured)
+    // 2. Inherited (Parent Context)
+    // 3. Specific (Slug/Title Match)
+    // 4. Default
+    const explicitIcon = getIconByName(node.icon);
     const specificIcon = findSpecificIcon(node.slug, node.title);
 
     // The icon to display for THIS node
-    const displayIconComponent = parentIcon || specificIcon || getDefaultIcon(node.type);
+    // Explicit overrides everything.
+    const displayIconComponent = explicitIcon || parentIcon || specificIcon || getDefaultIcon(node.type);
 
     // The icon to pass down to children
-    // If we inherited an icon, pass it down further.
-    // If not, but we have a specific icon, start passing that down.
-    const nextParentIcon = parentIcon || specificIcon || undefined;
+    // If we have an explicit icon, WE become the new source of truth for children.
+    // Otherwise, propagate the parent's icon.
+    // If neither, propagate specific icon if available (legacy behavior, optional).
+    // For now, let's propagate specific icon too if it exists.
+    const nextParentIcon = explicitIcon || parentIcon || specificIcon || undefined;
 
 
     // Determine children source

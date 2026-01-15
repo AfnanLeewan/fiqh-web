@@ -16,6 +16,7 @@ export interface IContentNode extends Document {
   path: string[]; // Array of parent slugs for hierarchical navigation
   order: number; // For ordering within parent
   published: boolean;
+  icon?: string;
 }
 
 // Mongoose Schema
@@ -57,6 +58,10 @@ const ContentNodeSchema = new Schema<IContentNode>(
       type: String,
       default: null,
       index: true,
+    },
+    icon: {
+      type: String,
+      default: null,
     },
     path: {
       type: [String],

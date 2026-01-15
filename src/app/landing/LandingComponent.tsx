@@ -43,6 +43,7 @@ import { searchContent, getAllContentByType } from "@/lib/contentUtils";
 import { i18n } from "@/lib/i18n";
 import { getIconForContent } from "@/lib/iconMapper";
 import { Divide } from "lucide-react";
+import Link from "next/link";
 
 export default function LandingComponent() {
   const [categories, setCategories] = useState<ContentNode[]>([]);
@@ -146,7 +147,7 @@ export default function LandingComponent() {
 
   const CategoryCard = ({ category }: { category: ContentNode }) => {
     const isComingSoon = category.badge === "coming-soon";
-    const IconComponent = isComingSoon ? LockIcon : getIconForContent(category.type, category.slug, category.title);
+    const IconComponent = isComingSoon ? LockIcon : getIconForContent(category.type, category.slug, category.title, category.icon);
 
     return (
       <Card
@@ -496,7 +497,7 @@ export default function LandingComponent() {
               lineHeight: 1.4
             }}
           >
-ข้อมูลทั้งหมดแปลมาจากสาราณุกรมของเว็บ dorar.net ขออัลลอฮ์ตอบแทนพวกท่าน       </Typography>
+ข้อมูลทั้งหมดแปลมาจากสาราณุกรมของเว็บ <Link href="https://dorar.net" style={{ color: "white", textDecoration: "underline" }}>dorar.net</Link>  ขออัลลอฮ์ตอบแทนพวกท่าน       </Typography>
         </Container>
       </Box>
 

@@ -59,6 +59,8 @@ import {
   updateContent,
   deleteContent,
 } from "@/lib/contentUtils";
+import { AVAILABLE_ICONS } from "@/lib/iconMapper";
+
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -804,7 +806,22 @@ export default function AdminPage() {
                           <Box sx={{ width: 24, height: 24 }} /> // Spacer for alignment
                         )}
                         {/* Type Icon */}
-                        {getTypeIcon(item.type)}
+                        {/* Type Icon */}
+                        {(() => {
+                          if (
+                            item.icon &&
+                            AVAILABLE_ICONS[
+                              item.icon as keyof typeof AVAILABLE_ICONS
+                            ]
+                          ) {
+                            const Icon =
+                              AVAILABLE_ICONS[
+                                item.icon as keyof typeof AVAILABLE_ICONS
+                              ];
+                            return <Icon />;
+                          }
+                          return getTypeIcon(item.type);
+                        })()}
                       </ListItemIcon>
                       <ListItemText
                         sx={{
@@ -936,6 +953,45 @@ export default function AdminPage() {
                   placeholder="Enter title"
                 />
               </Box>
+
+              {/* Icon Selection for Chapters */}
+              {editingNode?.type === "chapter" && (
+                <FormControl fullWidth>
+                  <InputLabel id="icon-select-label">Icon</InputLabel>
+                  <Select
+                    labelId="icon-select-label"
+                    value={editingNode?.icon || ""}
+                    label="Icon"
+                    onChange={(e) =>
+                      setEditingNode((prev) =>
+                        prev ? { ...prev, icon: e.target.value } : null,
+                      )
+                    }
+                  >
+                    <MenuItem value="">
+                      <em>Default (Inherit)</em>
+                    </MenuItem>
+                    {Object.keys(AVAILABLE_ICONS).map((name) => {
+                      const Icon =
+                        AVAILABLE_ICONS[name as keyof typeof AVAILABLE_ICONS];
+                      return (
+                        <MenuItem key={name} value={name}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
+                            <Icon color="action" />
+                            <Typography>{name}</Typography>
+                          </Box>
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+              )}
 
               {/* Parent Selection for chapters and articles */}
               {editingNode?.type !== "category" &&

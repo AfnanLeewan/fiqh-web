@@ -26,7 +26,7 @@ import {
   buildBreadcrumbs,
   getNextPrevArticles,
 } from "@/lib/contentUtils";
-import { findSpecificIcon } from "@/lib/iconMapper";
+import { findSpecificIcon, getIconByName } from "@/lib/iconMapper";
 import { ContentNode, ViewMode } from "@/types/content";
 import { i18n } from "@/lib/i18n";
 
@@ -405,7 +405,11 @@ export default function CategoryPage() {
                       viewMode="card"
                       basePath={basePath}
                       onItemClick={handleItemClick}
-                      inheritedIcon={findSpecificIcon(currentNode.slug, currentNode.title) || undefined}
+                      inheritedIcon={
+                        getIconByName(currentNode.icon) ||
+                        findSpecificIcon(currentNode.slug, currentNode.title) ||
+                        undefined
+                      }
                     />
                   </Box>
                 ))}
@@ -420,6 +424,7 @@ export default function CategoryPage() {
                       basePath={basePath}
                       onItemClick={handleItemClick}
                       inheritedIcon={
+                        getIconByName(currentNode.icon) ||
                         findSpecificIcon(currentNode.slug, currentNode.title) ||
                         undefined
                       }

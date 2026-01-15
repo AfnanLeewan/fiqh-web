@@ -2,7 +2,7 @@ import { Card, CardContent, Chip, Typography, Box } from "@mui/material";
 import { ContentNode, ViewMode } from "@/types/content";
 import { i18n } from "@/lib/i18n";
 import Link from "next/link";
-import { findSpecificIcon, getDefaultIcon } from "@/lib/iconMapper";
+import { findSpecificIcon, getDefaultIcon, getIconByName } from "@/lib/iconMapper";
 import { SvgIconComponent } from "@mui/icons-material";
 
 interface ContentItemProps {
@@ -23,10 +23,18 @@ export function ContentItem({
   const isComingSoon = item.badge === "coming-soon";
   const href = `${basePath}/${item.slug}`;
 
-  // Resolve Icon: Specific -> Inherited -> Default
-  // Update: User requested strict inheritance. Inherited > Specific > Default.
+  // Resolve Icon: Inherited -> Explicit (Item's own) -> Specific (Slug/Title) -> Default
+  const explicitIcon = getIconByName(item.icon);
   const specificIcon = findSpecificIcon(item.slug, item.title);
-  const IconComponent = inheritedIcon || specificIcon || getDefaultIcon(item.type);
+  
+  // Note: user requested "use for entire children", implying inheritance is high priority.
+  // However, usually explicit setting on an item should override inheritance?
+  // Let's assume: Explicit Icon overrides Inherited, so a sub-chapter can have a different icon.
+  // BUT, the prop is called "inheritedIcon", which comes from the parent context.
+  // If the Parent Context says "All my children use X", then X should probably win unless the child has a specific override.
+  
+  // Logic: Explicit > Inherited > Specific > Default
+  const IconComponent = explicitIcon || inheritedIcon || specificIcon || getDefaultIcon(item.type);
 
   const badgeNumber = typeof item.badge === "number" ? item.badge : null;
 

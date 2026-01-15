@@ -16,6 +16,7 @@ export interface ContentNode {
   published?: boolean;
   children?: ContentNode[];
   level?: number; // For hierarchical display in admin
+  icon?: string; // Custom icon name
 }
 
 export interface SearchResult {

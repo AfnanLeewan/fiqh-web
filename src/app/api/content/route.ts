@@ -258,6 +258,7 @@ export async function POST(request: NextRequest) {
       parentId,
       order,
       published = true,
+      icon,
     } = body;
 
     // Validate required fields
@@ -293,6 +294,7 @@ export async function POST(request: NextRequest) {
       parentId: parentId || null,
       order: order || 0,
       published,
+      icon,
     });
 
     const savedContent = await newContent.save();
