@@ -192,6 +192,10 @@ export default function CategoryPage() {
                   component="h1"
                   gutterBottom
                   fontWeight={700}
+                  sx={{ 
+                    fontSize: { xs: "1.5rem", md: "2.5rem" },
+                    wordBreak: "break-word"
+                  }}
                 >
                   {currentNode.title}
                 </Typography>
@@ -233,7 +237,8 @@ export default function CategoryPage() {
 <Box
   sx={{
     typography: "body1",
-    lineHeight: 1.8,
+    fontSize: { xs: "0.8rem !important", md: "1.1rem !important" },
+    lineHeight: { xs: "1.5 !important", md: "1.8 !important" },
     overflowWrap: "break-word",
     wordBreak: "break-word",
     "& *": {
@@ -254,37 +259,49 @@ export default function CategoryPage() {
       textAlign: "right",
     },
     "& h1, & h2, & h3, & h4, & h5, & h6": {
-      fontWeight: "bold",
-      marginTop: 2,
-      marginBottom: 1,
+      fontWeight: "bold !important",
+      marginTop: { xs: "1rem !important", md: "1.5rem !important" },
+      marginBottom: { xs: "0.5rem !important", md: "0.75rem !important" },
+      fontSize: { xs: "1em !important", md: "1.25em !important" },
+      lineHeight: { xs: "1.25 !important", md: "1.3 !important" },
     },
     "& p": {
-      marginBottom: 2,
+      marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
     },
     "& ul, & ol": {
-      marginBottom: 2,
-      paddingLeft: 3,
+      marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
+      paddingLeft: { xs: "1.5rem !important", md: "2rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+    },
+    "& li": {
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      marginBottom: { xs: "0.25rem !important", md: "0.5rem !important" },
     },
     "& p:has(span[dir='RTL']) + ul, & p:has(span[dir='rtl']) + ul, & p:has(span[dir='RTL']) + ol, & p:has(span[dir='rtl']) + ol": {
       direction: "rtl",
-      paddingRight: 3,
-      paddingLeft: 0,
+      paddingRight: { xs: "1.5rem !important", md: "2rem !important" },
+      paddingLeft: "0 !important",
     },
     "& blockquote": {
       borderLeft: "4px solid #ccc",
-      paddingLeft: 2,
-      marginLeft: 0,
+      paddingLeft: { xs: "1rem !important", md: "1.5rem !important" },
+      marginLeft: "0 !important",
       fontStyle: "italic",
-      marginBottom: 2,
+      marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
     },
     "& blockquote:has(span[dir='RTL']), & blockquote:has(span[dir='rtl'])": {
       direction: "rtl",
       borderRight: "4px solid #ccc",
       borderLeft: "none",
-      paddingRight: 2,
-      paddingLeft: 0,
-      marginRight: 0,
+      paddingRight: { xs: "1rem !important", md: "1.5rem !important" },
+      paddingLeft: "0 !important",
+      marginRight: "0 !important",
       marginLeft: "auto",
+    },
+    "& span": {
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
     },
     "& img": {
       maxWidth: "100%",
@@ -293,6 +310,7 @@ export default function CategoryPage() {
     "& a": {
       color: "primary.main",
       textDecoration: "underline",
+      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
     },
   }}
   dangerouslySetInnerHTML={{ __html: currentNode.body || "" }}
