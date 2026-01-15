@@ -954,44 +954,50 @@ export default function AdminPage() {
                 />
               </Box>
 
-              {/* Icon Selection for Chapters */}
-              {editingNode?.type === "chapter" && (
-                <FormControl fullWidth>
-                  <InputLabel id="icon-select-label">Icon</InputLabel>
-                  <Select
-                    labelId="icon-select-label"
-                    value={editingNode?.icon || ""}
-                    label="Icon"
-                    onChange={(e) =>
-                      setEditingNode((prev) =>
-                        prev ? { ...prev, icon: e.target.value } : null,
-                      )
-                    }
-                  >
-                    <MenuItem value="">
-                      <em>Default (Inherit)</em>
-                    </MenuItem>
-                    {Object.keys(AVAILABLE_ICONS).map((name) => {
-                      const Icon =
-                        AVAILABLE_ICONS[name as keyof typeof AVAILABLE_ICONS];
-                      return (
-                        <MenuItem key={name} value={name}>
-                          <Box
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 1,
-                            }}
-                          >
-                            <Icon color="action" />
-                            <Typography>{name}</Typography>
-                          </Box>
-                        </MenuItem>
-                      );
-                    })}
-                  </Select>
-                </FormControl>
-              )}
+              {/* Icon Selection for Chapters (Only for Top-Level Chapters under a Category) */}
+              {editingNode?.type === "chapter" &&
+                availableParents.find(
+                  (p) =>
+                    (p.id === editingNode?.parentId ||
+                      p._id === editingNode?.parentId) &&
+                    p.type === "category",
+                ) && (
+                  <FormControl fullWidth>
+                    <InputLabel id="icon-select-label">Icon</InputLabel>
+                    <Select
+                      labelId="icon-select-label"
+                      value={editingNode?.icon || ""}
+                      label="Icon"
+                      onChange={(e) =>
+                        setEditingNode((prev) =>
+                          prev ? { ...prev, icon: e.target.value } : null,
+                        )
+                      }
+                    >
+                      <MenuItem value="">
+                        <em>Default (Inherit)</em>
+                      </MenuItem>
+                      {Object.keys(AVAILABLE_ICONS).map((name) => {
+                        const Icon =
+                          AVAILABLE_ICONS[name as keyof typeof AVAILABLE_ICONS];
+                        return (
+                          <MenuItem key={name} value={name}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                              }}
+                            >
+                              <Icon color="action" />
+                              <Typography>{name}</Typography>
+                            </Box>
+                          </MenuItem>
+                        );
+                      })}
+                    </Select>
+                  </FormControl>
+                )}
 
               {/* Parent Selection for chapters and articles */}
               {editingNode?.type !== "category" &&
