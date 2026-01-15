@@ -15,7 +15,7 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "Fiqh Web",
+  title: "สารานุกรมนิติศาสตร์อิสลาม ",
   description: "Islamic Jurisprudence Learning Platform",
 };
 

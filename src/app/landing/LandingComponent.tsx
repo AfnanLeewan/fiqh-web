@@ -19,17 +19,20 @@ import {
   MenuItem,
   FormControl,
   Paper,
+  Divider,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
   Settings as SettingsIcon,
+  Lock as LockIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { ContentNode } from "@/types/content";
 import { searchContent, getAllContentByType } from "@/lib/contentUtils";
 import { i18n } from "@/lib/i18n";
 import { getIconForContent } from "@/lib/iconMapper";
+import { Divide } from "lucide-react";
 
 export default function LandingComponent() {
   const [categories, setCategories] = useState<ContentNode[]>([]);
@@ -102,7 +105,7 @@ export default function LandingComponent() {
 
   const CategoryCard = ({ category }: { category: ContentNode }) => {
     const isComingSoon = category.badge === "coming-soon";
-    const IconComponent = getIconForContent(category.type, category.slug, category.title);
+    const IconComponent = isComingSoon ? LockIcon : getIconForContent(category.type, category.slug, category.title);
 
     return (
       <Card
@@ -141,7 +144,7 @@ export default function LandingComponent() {
             </Box>
             <Box>
               <Typography
-                variant="h5"
+                variant="h1"
                 component="h3"
                 sx={{
                   fontSize: "1.25rem",
@@ -152,6 +155,7 @@ export default function LandingComponent() {
               >
                 {category.title}
               </Typography>
+   
               {/* ID Badge */}
               {category.badge && typeof category.badge === "number" && (
                 <Chip
@@ -166,11 +170,12 @@ export default function LandingComponent() {
                 />
               )}
             </Box>
+            
           </Box>
 
           {/* Description */}
           <Typography
-            variant="body1"
+            variant="h6"
             color="text.secondary"
             sx={{
               flex: 1,
@@ -308,7 +313,7 @@ export default function LandingComponent() {
               fontSize: { xs: "2rem", md: "3rem" }
             }}
           >
-            Explore Islamic Jurisprudence
+            แหล่งรวบรวมข้อมูลด้านนิติศาสตร์อิสลามที่ครอบคลุม
           </Typography>
           <Typography
             variant="h6"
@@ -316,14 +321,13 @@ export default function LandingComponent() {
               color: "secondary.light",
               mb: { xs: 4, md: 6 },
               fontWeight: 300,
-              maxWidth: "600px",
+              maxWidth: "900px",
               mx: "auto",
               fontSize: { xs: "1rem", md: "1.25rem" },
               lineHeight: 1.4
             }}
           >
-            A comprehensive digital platform for learning and understanding Fiqh.
-          </Typography>
+-เรากำลังทยอยอัปโหลดข้อมูลอยู่เรื่อย ๆ โปรดติดตามการอัปเดตทางเพจหลัก-          </Typography>
 
           <Paper
             elevation={4}
@@ -393,7 +397,21 @@ export default function LandingComponent() {
                 ))}
               </Select>
             </FormControl>
+            
           </Paper>
+          <Typography
+            variant="h6"
+            sx={{
+              color: "white",
+              mt: 1,
+              fontWeight: 300,
+              maxWidth: "900px",
+              mx: "auto",
+              fontSize: { xs: "1rem", md: "1.25rem" },
+              lineHeight: 1.4
+            }}
+          >
+ข้อมูลทั้งหมดแปลมาจากสาราณุกรมของเว็บ dorar.net ขออัลลอฮ์ตอบแทนพวกท่าน       </Typography>
         </Container>
       </Box>
 
@@ -429,10 +447,10 @@ export default function LandingComponent() {
               display: "grid",
               gridTemplateColumns: {
                 xs: "repeat(1, 1fr)",
-                sm: "repeat(2, 1fr)",
-                md: "repeat(3, 1fr)",
-                lg: "repeat(4, 1fr)",
-                xl: "repeat(4, 1fr)", // Max 4 columns for cleaner look
+                sm: "repeat(1, 1fr)",
+                md: "repeat(2, 1fr)",
+                lg: "repeat(2, 1fr)",
+                xl: "repeat(2, 1fr)",
               },
               gap: { xs: 3, md: 4 }, // Increased gap for distinct separation
               alignItems: "stretch",
