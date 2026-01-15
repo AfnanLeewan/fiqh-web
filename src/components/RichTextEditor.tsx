@@ -23,12 +23,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     ref,
   ) => {
     useImperativeHandle(ref, () => ({
-      focus: () => {
-        // Focus functionality can be added if needed
-      },
-      blur: () => {
-        // Blur functionality can be added if needed
-      },
+      focus: () => {},
+      blur: () => {},
     }));
 
     return (
@@ -44,45 +40,60 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
         }}
       >
         <Editor
-          tinymceScriptSrc="/tinymce/tinymce.min.js"
-          licenseKey="gpl"
-          value={value}
-          onEditorChange={onChange}
-          init={{
-            height: height,
-            menubar: false,
-            plugins: [
-              "advlist",
-              "autolink",
-              "lists",
-              "link",
-              "image",
-              "charmap",
-              "preview",
-              "anchor",
-              "searchreplace",
-              "visualblocks",
-              "code",
-              "fullscreen",
-              "insertdatetime",
-              "media",
-              "table",
-              "help",
-              "wordcount",
-            ],
-            toolbar:
-              "undo redo | blocks | " +
-              "bold italic forecolor | alignleft aligncenter " +
-              "alignright alignjustify | bullist numlist outdent indent | " +
-              "removeformat | help",
-            content_style:
-              "body { font-family:Helvetica,Arial,sans-serif; font-size:14px }",
-            placeholder: placeholder,
-            branding: false,
-            statusbar: false,
-            resize: false,
-          }}
-        />
+  tinymceScriptSrc="/tinymce/tinymce.min.js"
+  licenseKey="gpl"
+  value={value}
+  onEditorChange={onChange}
+  init={{
+    height: height,
+    menubar: false,
+    plugins: [
+      "advlist",
+      "autolink",
+      "lists",
+      "link",
+      "image",
+      "charmap",
+      "preview",
+      "anchor",
+      "searchreplace",
+      "visualblocks",
+      "code",
+      "fullscreen",
+      "insertdatetime",
+      "media",
+      "table",
+      "help",
+      "wordcount",
+      "directionality",
+    ],
+    toolbar:
+      "undo redo | blocks | " +
+      "bold italic forecolor | alignleft aligncenter " +
+      "alignright alignjustify | ltr rtl | bullist numlist outdent indent | " +
+      "removeformat | help",
+    content_style: `
+      body { 
+        font-family: Helvetica, Arial, sans-serif; 
+        font-size: 14px;
+      }
+      *[dir='RTL'], *[dir='rtl'] {
+        direction: rtl !important;
+      }
+      *[dir='LTR'], *[dir='ltr'] {
+        direction: ltr !important;
+      }
+      p:has(span[dir='RTL']), p:has(span[dir='rtl']) {
+        direction: rtl;
+        text-align: right;
+      }
+    `,
+    placeholder: placeholder,
+    branding: false,
+    statusbar: false,
+    resize: false,
+  }}
+/>
       </Box>
     );
   },

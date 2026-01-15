@@ -223,39 +223,66 @@ export default function CategoryPage() {
 
                 <Divider sx={{ mb: 4 }} />
 
-                <Box
-                  sx={{
-                    typography: "body1",
-                    lineHeight: 1.8,
-                    "& h1, & h2, & h3, & h4, & h5, & h6": {
-                      fontWeight: "bold",
-                      marginTop: 2,
-                      marginBottom: 1,
-                    },
-                    "& p": {
-                      marginBottom: 2,
-                    },
-                    "& ul, & ol": {
-                      marginBottom: 2,
-                      paddingLeft: 3,
-                    },
-                    "& blockquote": {
-                      borderLeft: "4px solid #ccc",
-                      paddingLeft: 2,
-                      marginLeft: 0,
-                      fontStyle: "italic",
-                    },
-                    "& img": {
-                      maxWidth: "100%",
-                      height: "auto",
-                    },
-                    "& a": {
-                      color: "primary.main",
-                      textDecoration: "underline",
-                    },
-                  }}
-                  dangerouslySetInnerHTML={{ __html: currentNode.body || "" }}
-                />
+<Box
+  sx={{
+    typography: "body1",
+    lineHeight: 1.8,
+    // Apply direction to any element with dir attribute
+    "& *[dir='RTL'], & *[dir='rtl']": {
+      direction: "rtl !important",
+    },
+    "& *[dir='LTR'], & *[dir='ltr']": {
+      direction: "ltr !important",
+    },
+    // Handle paragraphs containing RTL spans
+    "& p:has(span[dir='RTL']), & p:has(span[dir='rtl'])": {
+      direction: "rtl",
+      textAlign: "right",
+    },
+    "& h1, & h2, & h3, & h4, & h5, & h6": {
+      fontWeight: "bold",
+      marginTop: 2,
+      marginBottom: 1,
+    },
+    "& p": {
+      marginBottom: 2,
+    },
+    "& ul, & ol": {
+      marginBottom: 2,
+      paddingLeft: 3,
+    },
+    "& p:has(span[dir='RTL']) + ul, & p:has(span[dir='rtl']) + ul, & p:has(span[dir='RTL']) + ol, & p:has(span[dir='rtl']) + ol": {
+      direction: "rtl",
+      paddingRight: 3,
+      paddingLeft: 0,
+    },
+    "& blockquote": {
+      borderLeft: "4px solid #ccc",
+      paddingLeft: 2,
+      marginLeft: 0,
+      fontStyle: "italic",
+      marginBottom: 2,
+    },
+    "& blockquote:has(span[dir='RTL']), & blockquote:has(span[dir='rtl'])": {
+      direction: "rtl",
+      borderRight: "4px solid #ccc",
+      borderLeft: "none",
+      paddingRight: 2,
+      paddingLeft: 0,
+      marginRight: 0,
+      marginLeft: "auto",
+    },
+    "& img": {
+      maxWidth: "100%",
+      height: "auto",
+    },
+    "& a": {
+      color: "primary.main",
+      textDecoration: "underline",
+    },
+  }}
+  dangerouslySetInnerHTML={{ __html: currentNode.body || "" }}
+/>
 
                 {/* Navigation Buttons inside content card */}
                 <Box
