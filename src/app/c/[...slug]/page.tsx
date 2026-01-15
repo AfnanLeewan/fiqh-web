@@ -158,7 +158,14 @@ export default function CategoryPage() {
       <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
         <Header title="สารานุกรมนิติศาสตร์อิสลาม " />
 
-        <Container component="main" maxWidth="xl" sx={{ py: 3 }}>
+        <Container 
+          component="main" 
+          maxWidth="xl" 
+          sx={{ 
+            py: { xs: 2, md: 3 },
+            pb: { xs: 10, md: 3 } // Add extra bottom padding for mobile to avoid floating buttons obscuring content
+          }}
+        >
           <Breadcrumb items={breadcrumbs} />
 
           <Box
@@ -166,7 +173,7 @@ export default function CategoryPage() {
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "280px 1fr" },
               gap: 3,
-              mt: 3,
+              mt: { xs: 2, md: 3 },
               alignItems: "start",
             }}
           >
@@ -179,7 +186,7 @@ export default function CategoryPage() {
             </Box>
 
             <Paper elevation={2}>
-              <Box sx={{ p: 4 }}>
+              <Box sx={{ p: { xs: 2, md: 4 } }}>
                 <Typography
                   variant="h3"
                   component="h1"
@@ -227,6 +234,13 @@ export default function CategoryPage() {
   sx={{
     typography: "body1",
     lineHeight: 1.8,
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
+    "& *": {
+      maxWidth: "100%",
+      overflowWrap: "break-word",
+      wordBreak: "break-word",
+    },
     // Apply direction to any element with dir attribute
     "& *[dir='RTL'], & *[dir='rtl']": {
       direction: "rtl !important",

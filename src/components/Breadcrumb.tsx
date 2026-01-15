@@ -16,11 +16,13 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   const safeItems = Array.isArray(items) ? items : [];
 
   return (
-    <Box sx={{ mb: 3 }}>
+    <Box sx={{ mb: { xs: 2, md: 3 }, overflowX: "auto", pb: 1 }}>
       <Breadcrumbs
         separator={<ChevronRightIcon fontSize="small" />}
         aria-label="breadcrumb"
         sx={{
+          whiteSpace: "nowrap",
+          minWidth: "max-content",
           "& .MuiBreadcrumbs-ol": {
             fontSize: "0.875rem",
           },

@@ -279,7 +279,7 @@ export function Header({
         </Toolbar>
 
         {/* Mobile Secondary Row: Search & Toggles */}
-        <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", px: 2, pb: 2, gap: 2 }}>
+        <Box sx={{ display: { xs: "flex", md: "none" }, flexDirection: "column", px: 2, pb: 1.5, gap: 1.5 }}>
           {/* Mobile Search */}
           <Box sx={{ position: "relative", width: "100%" }}>
             <form
