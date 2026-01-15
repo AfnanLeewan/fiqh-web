@@ -156,7 +156,7 @@ export default function CategoryPage() {
   if (currentNode.type === "article") {
     return (
       <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-        <Header title="สารบัญกรณ์" />
+        <Header title="สารานุกรมนิติศาสตร์อิสลาม " />
 
         <Container component="main" maxWidth="xl" sx={{ py: 3 }}>
           <Breadcrumb items={breadcrumbs} />

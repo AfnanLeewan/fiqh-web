@@ -610,7 +610,7 @@ export default function AdminPage() {
       <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            สารานุกรม
+            สารานุกรมนิติศาสตร์อิสลาม
           </Typography>
           <Button
             color="inherit"

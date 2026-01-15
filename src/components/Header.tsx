@@ -46,7 +46,7 @@ interface HeaderProps {
 }
 
 export function Header({
-  title = "สารบัญกรณ์",
+  title = "สารานุกรมนิติศาสตร์อิสลาม ",
   showViewToggle = false,
   viewMode = "list",
   onViewModeChange,
