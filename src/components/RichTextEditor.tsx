@@ -45,7 +45,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
   value={value}
   onEditorChange={onChange}
   init={{
-    height: height,
+
     menubar: false,
     plugins: [
       "advlist",
@@ -66,12 +66,15 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       "help",
       "wordcount",
       "directionality",
+      "autoresize",
     ],
     toolbar:
       "undo redo | blocks | " +
       "bold italic forecolor | alignleft aligncenter " +
       "alignright alignjustify | ltr rtl | bullist numlist outdent indent | " +
       "removeformat | help",
+    min_height: height,
+    autoresize_bottom_margin: 20,
     content_style: `
       body { 
         font-family: Helvetica, Arial, sans-serif; 

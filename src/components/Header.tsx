@@ -221,52 +221,7 @@ export function Header({
                 />
               </form>
 
-              {/* Shared Popper for Desktop */}
-              <Popper
-                open={
-                  Boolean(searchAnchorEl) &&
-                  Array.isArray(searchResults) &&
-                  searchResults.length > 0 &&
-                  // Ensure we only show this popper if the anchor is the desktop input
-                  (searchAnchorEl as HTMLElement).clientWidth > 250 // Rough check or rely on browser placement
-                }
-                anchorEl={searchAnchorEl}
-                placement="bottom-start"
-                sx={{
-                  zIndex: 1300,
-                  width: 300,
-                }}
-              >
-                <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
-                  <Paper
-                    elevation={8}
-                    sx={{ maxHeight: 300, overflow: "auto" }}
-                  >
-                    <List dense>
-                      {Array.isArray(searchResults) &&
-                        searchResults.map((result) => (
-                          <ListItemButton
-                            key={result.id}
-                            onClick={() => handleResultClick(result)}
-                          >
-                            <ListItemIcon sx={{ minWidth: 40 }}>
-                              {getResultIcon(result.type)}
-                            </ListItemIcon>
-                            <ListItemText
-                              primary={result.title}
-                              secondary={result.type}
-                              primaryTypographyProps={{ fontSize: "0.875rem" }}
-                              secondaryTypographyProps={{
-                                fontSize: "0.75rem",
-                                textTransform: "capitalize",
-                              }}
-                            />
-                          </ListItemButton>
-                        ))}
-                    </List>
-                  </Paper>
-                </ClickAwayListener>
-              </Popper>
+
             </Box>
 
             {/* Desktop View Toggle */}
@@ -382,54 +337,7 @@ export function Header({
               />
             </form>
 
-            {/* Shared Popper for Mobile */}
-            <Popper
-              open={
-                Boolean(searchAnchorEl) &&
-                Array.isArray(searchResults) &&
-                searchResults.length > 0 &&
-                // Ensure we only show this popper if the anchor is the mobile input (check width or rely on click)
-                // Actually, Popper anchors to the element, so as long as anchorEl is correct, it works.
-                // Since state is shared, we rely on onFocus setting the correct anchor.
-                (searchAnchorEl !== null)
-              }
-              anchorEl={searchAnchorEl}
-              placement="bottom-start"
-              sx={{
-                zIndex: 1300,
-                width: searchAnchorEl?.offsetWidth || "auto",
-              }}
-            >
-              <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
-                <Paper
-                  elevation={8}
-                  sx={{ maxHeight: 300, overflow: "auto" }}
-                >
-                  <List dense>
-                    {Array.isArray(searchResults) &&
-                      searchResults.map((result) => (
-                        <ListItemButton
-                          key={result.id}
-                          onClick={() => handleResultClick(result)}
-                        >
-                          <ListItemIcon sx={{ minWidth: 40 }}>
-                            {getResultIcon(result.type)}
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={result.title}
-                            secondary={result.type}
-                            primaryTypographyProps={{ fontSize: "0.875rem" }}
-                            secondaryTypographyProps={{
-                              fontSize: "0.75rem",
-                              textTransform: "capitalize",
-                            }}
-                          />
-                        </ListItemButton>
-                      ))}
-                  </List>
-                </Paper>
-              </ClickAwayListener>
-            </Popper>
+
           </Box>
 
           {/* Mobile View Toggles */}
@@ -470,6 +378,47 @@ export function Header({
           )}
         </Box>
       </Container>
+      {/* Global Search Results Popper */}
+      <Popper
+        open={
+          Boolean(searchAnchorEl) &&
+          Array.isArray(searchResults) &&
+          searchResults.length > 0
+        }
+        anchorEl={searchAnchorEl}
+        placement="bottom-start"
+        sx={{
+          zIndex: 1300,
+          width: searchAnchorEl ? searchAnchorEl.clientWidth : 300,
+        }}
+      >
+        <ClickAwayListener onClickAway={() => setSearchAnchorEl(null)}>
+          <Paper elevation={8} sx={{ maxHeight: 300, overflow: "auto" }}>
+            <List dense>
+              {Array.isArray(searchResults) &&
+                searchResults.map((result) => (
+                  <ListItemButton
+                    key={result.id}
+                    onClick={() => handleResultClick(result)}
+                  >
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      {getResultIcon(result.type)}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={result.title}
+                      secondary={result.type}
+                      primaryTypographyProps={{ fontSize: "0.875rem" }}
+                      secondaryTypographyProps={{
+                        fontSize: "0.75rem",
+                        textTransform: "capitalize",
+                      }}
+                    />
+                  </ListItemButton>
+                ))}
+            </List>
+          </Paper>
+        </ClickAwayListener>
+      </Popper>
     </AppBar>
   );
 }
