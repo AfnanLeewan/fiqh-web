@@ -608,28 +608,62 @@ export default function AdminPage() {
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
       {/* Header */}
       <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Toolbar sx={{ px: { xs: 1, md: 2 } }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ 
+              flexGrow: 1, 
+              fontSize: { xs: "1rem", sm: "1.25rem" },
+              lineHeight: 1.2
+            }}
+          >
             สารานุกรมนิติศาสตร์อิสลาม
           </Typography>
-          <Button
-            color="inherit"
-            onClick={() => router.push("/")}
-            sx={{ mr: 2 }}
-          >
-            <ViewIcon sx={{ mr: 1 }} />
-            View Site
-          </Button>
-          <Button color="inherit" onClick={handleLogout}>
-            <LogOutIcon sx={{ mr: 1 }} />
-            Logout
-          </Button>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              color="inherit"
+              onClick={() => router.push("/")}
+              size="small"
+              sx={{ 
+                minWidth: "auto",
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <ViewIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                View Site
+              </Box>
+            </Button>
+            <Button 
+              color="inherit" 
+              onClick={handleLogout}
+              size="small"
+              sx={{ 
+                minWidth: "auto",
+                px: { xs: 1, sm: 2 }
+              }}
+            >
+              <LogOutIcon sx={{ mr: { xs: 0, sm: 1 } }} />
+              <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                Logout
+              </Box>
+            </Button>
+          </Box>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 } }}>
         {/* Search and Controls */}
-        <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", lg: "row" }, 
+            gap: 2, 
+            mb: 3,
+            alignItems: { xs: "stretch", lg: "center" } 
+          }}
+        >
           <TextField
             fullWidth
             placeholder="Search content..."
@@ -643,92 +677,96 @@ export default function AdminPage() {
               ),
             }}
           />
-          <FormControl sx={{ minWidth: 180 }}>
-            <InputLabel id="category-filter-label">
-              Filter by Category
-            </InputLabel>
-            <Select
-              labelId="category-filter-label"
-              value={selectedCategory}
-              label="Filter by Category"
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <MenuItem value="">
-                <em>All Categories</em>
-              </MenuItem>
-              {contentData
-                .filter((item) => item.type === "category")
-                .map((category) => (
-                  <MenuItem
-                    key={category._id || category.id}
-                    value={category._id || category.id}
-                  >
-                    {category.title}
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-          {selectedCategory && (
-            <FormControl sx={{ minWidth: 180 }}>
-              <InputLabel id="chapter-filter-label">
-                Filter by Chapter
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, flexShrink: 0 }}>
+            <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
+              <InputLabel id="category-filter-label">
+                Filter by Category
               </InputLabel>
               <Select
-                labelId="chapter-filter-label"
-                value={selectedChapter}
-                label="Filter by Chapter"
-                onChange={(e) => setSelectedChapter(e.target.value)}
+                labelId="category-filter-label"
+                value={selectedCategory}
+                label="Filter by Category"
+                onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <MenuItem value="">
-                  <em>All Chapters</em>
+                  <em>All Categories</em>
                 </MenuItem>
-                {getAvailableChapters().map((chapter) => {
-                  // Build display text showing hierarchy for nested chapters
-                  const getChapterHierarchy = (item: ContentNode): string => {
-                    const parent = contentData.find(
-                      (p) => (p._id || p.id) === item.parentId,
-                    );
-                    if (parent && parent.type === "chapter") {
-                      return `${getChapterHierarchy(parent)} > ${item.title}`;
-                    }
-                    return item.title;
-                  };
-
-                  return (
+                {contentData
+                  .filter((item) => item.type === "category")
+                  .map((category) => (
                     <MenuItem
-                      key={chapter._id || chapter.id}
-                      value={chapter._id || chapter.id}
+                      key={category._id || category.id}
+                      value={category._id || category.id}
                     >
-                      {getChapterHierarchy(chapter)}
+                      {category.title}
                     </MenuItem>
-                  );
-                })}
+                  ))}
               </Select>
             </FormControl>
-          )}
-          <ButtonGroup variant="contained">
-            <Button
-              startIcon={<BookOpenIcon />}
-              onClick={() => handleCreate("category")}
-              sx={{ minWidth: 120 }}
-            >
-              Add Category
-            </Button>
-            <Button
-              startIcon={<FolderIcon />}
-              onClick={() => handleCreate("chapter")}
-              sx={{ minWidth: 120 }}
-            >
-              Add Chapter
-            </Button>
-            <Button
-              startIcon={<FileTextIcon />}
-              onClick={() => handleCreate("article")}
-              sx={{ minWidth: 120 }}
-            >
-              Add Article
-            </Button>
-          </ButtonGroup>
+            {selectedCategory && (
+              <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
+                <InputLabel id="chapter-filter-label">
+                  Filter by Chapter
+                </InputLabel>
+                <Select
+                  labelId="chapter-filter-label"
+                  value={selectedChapter}
+                  label="Filter by Chapter"
+                  onChange={(e) => setSelectedChapter(e.target.value)}
+                >
+                  <MenuItem value="">
+                    <em>All Chapters</em>
+                  </MenuItem>
+                  {getAvailableChapters().map((chapter) => {
+                    // Build display text showing hierarchy for nested chapters
+                    const getChapterHierarchy = (item: ContentNode): string => {
+                      const parent = contentData.find(
+                        (p) => (p._id || p.id) === item.parentId,
+                      );
+                      if (parent && parent.type === "chapter") {
+                        return `${getChapterHierarchy(parent)} > ${item.title}`;
+                      }
+                      return item.title;
+                    };
+
+                    return (
+                      <MenuItem
+                        key={chapter._id || chapter.id}
+                        value={chapter._id || chapter.id}
+                      >
+                        {getChapterHierarchy(chapter)}
+                      </MenuItem>
+                    );
+                  })}
+                </Select>
+              </FormControl>
+            )}
+          </Box>
+          <Box sx={{ overflowX: "auto", pb: 1, display: "flex" }}>
+             <ButtonGroup variant="contained" sx={{ width: { xs: "100%", md: "auto" }, justifyContent: "center" }}>
+              <Button
+                startIcon={<BookOpenIcon />}
+                onClick={() => handleCreate("category")}
+                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
+              >
+                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Category
+              </Button>
+              <Button
+                startIcon={<FolderIcon />}
+                onClick={() => handleCreate("chapter")}
+                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
+              >
+                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Chapter
+              </Button>
+              <Button
+                startIcon={<FileTextIcon />}
+                onClick={() => handleCreate("article")}
+                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
+              >
+                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Article
+              </Button>
+            </ButtonGroup>
+          </Box>
         </Box>
 
         {/* Loading State */}
@@ -782,6 +820,8 @@ export default function AdminPage() {
                         mb: 1,
                         maxWidth: `calc(100% - ${Math.min((item.level || 0) * 2, 8) * 8}px)`, // Ensure it doesn't overflow
                         boxSizing: "border-box",
+                        flexDirection: { xs: "column", sm: "row" },
+                        alignItems: { xs: "stretch", sm: "center" },
                       }}
                     >
                       <ListItemIcon
@@ -827,6 +867,7 @@ export default function AdminPage() {
                         sx={{
                           minWidth: 0, // Allow shrinking
                           overflow: "hidden",
+                          width: "100%", // Take full width available
                         }}
                         primary={
                           <Box
@@ -892,7 +933,16 @@ export default function AdminPage() {
                           </Typography>
                         }
                       />
-                      <ListItemSecondaryAction>
+                      <Box 
+                        sx={{ 
+                            display: "flex", 
+                            gap: 1, 
+                            mt: { xs: 1, sm: 0 }, 
+                            ml: { sm: 2 },
+                            alignSelf: { xs: "flex-end", sm: "center" },
+                            flexShrink: 0 
+                        }}
+                      >
                         {/* Add button for categories and chapters */}
                         {(item.type === "category" ||
                           item.type === "chapter") && (
@@ -901,8 +951,8 @@ export default function AdminPage() {
                             onClick={(e) =>
                               handleAddMenuOpen(e, item._id || item.id)
                             }
-                            sx={{ mr: 1 }}
                             color="primary"
+                            size="small"
                           >
                             <AddIcon />
                           </IconButton>
@@ -910,7 +960,7 @@ export default function AdminPage() {
                         <IconButton
                           edge="end"
                           onClick={() => handleEdit(item)}
-                          sx={{ mr: 1 }}
+                          size="small"
                         >
                           <EditIcon />
                         </IconButton>
@@ -918,10 +968,11 @@ export default function AdminPage() {
                           edge="end"
                           onClick={() => handleDelete(item)}
                           color="error"
+                          size="small"
                         >
                           <DeleteIcon />
                         </IconButton>
-                      </ListItemSecondaryAction>
+                      </Box>
                     </ListItem>
                   ))}
                 </List>
