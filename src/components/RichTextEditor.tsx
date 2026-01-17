@@ -40,7 +40,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
         }}
       >
         <Editor
-  tinymceScriptSrc="/tinymce/tinymce.min.js"
+  tinymceScriptSrc="/fiqh/tinymce/tinymce.min.js"
   licenseKey="gpl"
   value={value}
   onEditorChange={onChange}

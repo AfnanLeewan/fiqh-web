@@ -14,7 +14,7 @@ class APIError extends Error {
 }
 
 // API Base URL
-const API_BASE = "/api/content";
+const API_BASE = "/fiqh/api/content";
 
 // Helper function to make API calls
 async function apiCall(endpoint: string, options?: RequestInit) {
