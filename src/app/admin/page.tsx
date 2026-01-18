@@ -789,30 +789,14 @@ export default function AdminPage() {
               </FormControl>
             )}
           </Box>
-          <Box sx={{ overflowX: "auto", pb: 1, display: "flex" }}>
-             <ButtonGroup variant="contained" sx={{ width: { xs: "100%", md: "auto" }, justifyContent: "center" }}>
-              <Button
+          <Box sx={{ pb: 1, display: "flex" }}>
+             <Button
+                variant="contained"
                 startIcon={<BookOpenIcon />}
                 onClick={() => handleCreate("category")}
-                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
               >
-                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Category
+                Add Category
               </Button>
-              <Button
-                startIcon={<FolderIcon />}
-                onClick={() => handleCreate("chapter")}
-                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
-              >
-                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Chapter
-              </Button>
-              <Button
-                startIcon={<FileTextIcon />}
-                onClick={() => handleCreate("article")}
-                sx={{ flex: { xs: 1, md: "initial" }, minWidth: "auto" }}
-              >
-                <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Add </Box> Article
-              </Button>
-            </ButtonGroup>
           </Box>
         </Box>
 

@@ -237,7 +237,7 @@ export default function CategoryPage() {
 <Box
   sx={{
     typography: "body1",
-    fontSize: { xs: "0.8rem !important", md: "1.1rem !important" },
+    fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     lineHeight: { xs: "1.5 !important", md: "1.8 !important" },
     overflowWrap: "break-word",
     wordBreak: "break-word",
@@ -262,20 +262,20 @@ export default function CategoryPage() {
       fontWeight: "bold !important",
       marginTop: { xs: "1rem !important", md: "1.5rem !important" },
       marginBottom: { xs: "0.5rem !important", md: "0.75rem !important" },
-      fontSize: { xs: "1em !important", md: "1.25em !important" },
+      fontSize: { xs: "1em !important", md: "2em !important" },
       lineHeight: { xs: "1.25 !important", md: "1.3 !important" },
     },
     "& p": {
       marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     },
     "& ul, & ol": {
       marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
       paddingLeft: { xs: "1.5rem !important", md: "2rem !important" },
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     },
     "& li": {
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
       marginBottom: { xs: "0.25rem !important", md: "0.5rem !important" },
     },
     "& p:has(span[dir='RTL']) + ul, & p:has(span[dir='rtl']) + ul, & p:has(span[dir='RTL']) + ol, & p:has(span[dir='rtl']) + ol": {
@@ -289,7 +289,7 @@ export default function CategoryPage() {
       marginLeft: "0 !important",
       fontStyle: "italic",
       marginBottom: { xs: "0.75rem !important", md: "1.5rem !important" },
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     },
     "& blockquote:has(span[dir='RTL']), & blockquote:has(span[dir='rtl'])": {
       direction: "rtl",
@@ -301,7 +301,7 @@ export default function CategoryPage() {
       marginLeft: "auto",
     },
     "& span": {
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     },
     "& img": {
       maxWidth: "100%",
@@ -310,7 +310,7 @@ export default function CategoryPage() {
     "& a": {
       color: "primary.main",
       textDecoration: "underline",
-      fontSize: { xs: "0.8rem !important", md: "1rem !important" },
+      fontSize: { xs: "0.8rem !important", md: "1.5rem !important" },
     },
   }}
   dangerouslySetInnerHTML={{ __html: currentNode.body || "" }}
