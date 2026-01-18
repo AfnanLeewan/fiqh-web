@@ -95,6 +95,7 @@ export default function AdminPage() {
 
   const [contentData, setContentData] = useState<ContentNode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthChecking, setIsAuthChecking] = useState(true); // New state for auth check
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>(""); // Category filter
@@ -133,9 +134,29 @@ export default function AdminPage() {
     }
   };
 
+  // Check authentication and load content
   useEffect(() => {
-    loadContent();
-  }, []);
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/fiqh/api/auth/check");
+        const data = await response.json();
+
+        if (!data.authenticated) {
+          router.push("/admin/login");
+          return;
+        }
+
+        // Only load content if authenticated
+        setIsAuthChecking(false);
+        loadContent();
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        router.push("/admin/login");
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   // Reset chapter filter when category changes
   useEffect(() => {
@@ -542,8 +563,17 @@ export default function AdminPage() {
     }
   };
 
-  const handleLogout = () => {
-    router.push("/admin/login");
+  const handleLogout = async () => {
+    try {
+      await fetch("/fiqh/api/auth/logout", {
+        method: "POST",
+      });
+      router.push("/admin/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Still redirect even if logout fails
+      router.push("/admin/login");
+    }
   };
 
   // Add menu handlers
@@ -603,6 +633,23 @@ export default function AdminPage() {
   };
 
   const filteredContent = getFilteredContentWithVisibility();
+
+  // Show loading while checking authentication
+  if (isAuthChecking) {
+    return (
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          bgcolor: "background.default",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>

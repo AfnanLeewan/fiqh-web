@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   Box,
@@ -32,12 +32,30 @@ export default function AdminLogin() {
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
 
+  // Check if already authenticated
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/fiqh/api/auth/check");
+        const data = await response.json();
+
+        if (data.authenticated) {
+          router.push("/admin");
+        }
+      } catch (error) {
+        console.error("Auth check failed:", error);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/fiqh/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
