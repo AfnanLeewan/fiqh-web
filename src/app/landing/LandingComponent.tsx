@@ -314,9 +314,7 @@ export default function LandingComponent() {
 
             <Box sx={{ flexGrow: 1 }} />
 
-            <IconButton color="inherit" onClick={() => router.push("/admin")}>
-              <SettingsIcon />
-            </IconButton>
+
           </Toolbar>
         </Container>
       </AppBar>

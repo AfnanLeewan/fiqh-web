@@ -260,21 +260,6 @@ export function Header({
                 </ToggleButton>
               </ToggleButtonGroup>
             )}
-
-            {/* Admin Button */}
-            <IconButton
-              color="inherit"
-              onClick={() => router.push("/admin/login")}
-              title="Admin Login"
-              sx={{
-                color: "rgba(255, 255, 255, 0.9)",
-                "&:hover": {
-                  bgcolor: "rgba(255, 255, 255, 0.1)",
-                },
-              }}
-            >
-              <SettingsIcon />
-            </IconButton>
           </Box>
         </Toolbar>
 
