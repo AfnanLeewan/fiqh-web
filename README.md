@@ -10,6 +10,11 @@ docker build -t ghcr.io/jamaah-it/fiqh:latest .
 docker push ghcr.io/jamaah-it/fiqh:latest
 ``` 
 
+# Login to GHCR
+```
+docker login ghcr.io -u <username> -p <token>
+```
+
 # Pull the new image
 ```
 docker pull ghcr.io/jamaah-it/fiqh:latest
