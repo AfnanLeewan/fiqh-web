@@ -19,19 +19,18 @@ import {
   MenuItem,
   FormControl,
   Paper,
-  Divider,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Popper,
   ClickAwayListener,
-  InputAdornment,
+
 } from "@mui/material";
 import {
   Search as SearchIcon,
   Home as HomeIcon,
-  Settings as SettingsIcon,
+
   Category as CategoryIcon,
   Article as ArticleIcon,
   Folder as ChapterIcon,
@@ -42,7 +41,6 @@ import { ContentNode, SearchResult } from "@/types/content";
 import { searchContent, getAllContentByType } from "@/lib/contentUtils";
 import { i18n } from "@/lib/i18n";
 import { getIconForContent } from "@/lib/iconMapper";
-import { Divide } from "lucide-react";
 import Link from "next/link";
 
 export default function LandingComponent() {
