@@ -495,7 +495,7 @@ export default function LandingComponent() {
               lineHeight: 1.4
             }}
           >
-ข้อมูลทั้งหมดแปลมาจากสาราณุกรมของเว็บ <Link href="https://dorar.net" style={{ color: "white", textDecoration: "underline" }}>dorar.net</Link>  ขออัลลอฮ์ตอบแทนพวกท่าน       </Typography>
+ข้อมูลทั้งหมดแปลมาจากสารานุกรมของเว็บ <Link href="https://dorar.net" style={{ color: "white", textDecoration: "underline" }}>dorar.net</Link>  ขออัลลอฮ์ตอบแทนพวกท่าน       </Typography>
         </Container>
       </Box>
 

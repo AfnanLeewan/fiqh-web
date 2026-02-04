@@ -49,6 +49,8 @@ import {
   ChevronRight as ChevronRightIcon,
   Add as AddIcon,
   PostAdd as PostAddIcon,
+
+  DriveFileMove as MoveIcon,
 } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { ContentNode } from "@/types/content";
@@ -108,7 +110,13 @@ export default function AdminPage() {
   const [availableParents, setAvailableParents] = useState<ContentNode[]>([]);
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [addMenuAnchor, setAddMenuAnchor] = useState<HTMLElement | null>(null);
+
   const [addMenuParentId, setAddMenuParentId] = useState<string | null>(null);
+  
+  // Move functionality state
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false);
+  const [movingNode, setMovingNode] = useState<ContentNode | null>(null);
+  const [moveTargetParentId, setMoveTargetParentId] = useState<string | null>(null);
 
   // Load content data
   const loadContent = async () => {
@@ -127,7 +135,7 @@ export default function AdminPage() {
       const allContent = [...categories, ...chapters, ...articles];
       setContentData(allContent);
     } catch (err) {
-      setError("Failed to load content");
+      setError("โหลดเนื้อหาไม่สำเร็จ");
       console.error("Error loading content:", err);
     } finally {
       setLoading(false);
@@ -461,7 +469,7 @@ export default function AdminPage() {
 
   const handleSave = async () => {
     if (!editingNode?.title) {
-      enqueueSnackbar("Title is required", { variant: "error" });
+      enqueueSnackbar("กรุณากรอกหัวข้อ", { variant: "error" });
       return;
     }
 
@@ -472,7 +480,7 @@ export default function AdminPage() {
       availableParents.length > 0
     ) {
       enqueueSnackbar(
-        `Please select a parent ${editingNode.type === "chapter" ? "category" : "category/chapter"}`,
+        `กรุณาเลือก ${editingNode.type === "chapter" ? "หมวดหมู่" : "หมวดหมู่/บท"} หลัก`,
         { variant: "error" },
       );
       return;
@@ -492,7 +500,7 @@ export default function AdminPage() {
       if (editingNode.isNew) {
         const created = await createContent(contentData);
         if (created) {
-          enqueueSnackbar(`Created ${editingNode.type} successfully`, {
+          enqueueSnackbar(`สร้าง ${editingNode.type} สำเร็จ`, {
             variant: "success",
           });
           loadContent(); // Reload content
@@ -502,7 +510,7 @@ export default function AdminPage() {
       } else {
         const updated = await updateContent(contentData);
         if (updated) {
-          enqueueSnackbar(`Updated ${editingNode.type} successfully`, {
+          enqueueSnackbar(`อัปเดต ${editingNode.type} สำเร็จ`, {
             variant: "success",
           });
           loadContent(); // Reload content
@@ -514,13 +522,76 @@ export default function AdminPage() {
       setIsDialogOpen(false);
       setEditingNode(null);
     } catch (err) {
-      enqueueSnackbar("Failed to save content", { variant: "error" });
+      enqueueSnackbar("บันทึกข้อมูลไม่สำเร็จ", { variant: "error" });
       console.error("Error saving content:", err);
     }
   };
 
+  const isDescendant = (potentialDescendant: ContentNode, ancestorId: string): boolean => {
+    if (!potentialDescendant.parentId) return false;
+    if (potentialDescendant.parentId === ancestorId) return true;
+    const parent = contentData.find(p => (p._id || p.id) === potentialDescendant.parentId);
+    if (!parent) return false;
+    return isDescendant(parent, ancestorId);
+  };
+
+  const handleMove = (node: ContentNode) => {
+    setMovingNode(node);
+    setMoveTargetParentId(node.parentId || "");
+    
+    // Filter available parents:
+    // 1. Must be Category or Chapter
+    // 2. Cannot be self
+    // 3. Cannot be descendant
+    const parents = contentData.filter(item => {
+        if (item.type !== 'category' && item.type !== 'chapter') return false;
+        
+        const itemId = item._id || item.id;
+        const nodeId = node._id || node.id;
+        
+        // Cannot be self
+        if (itemId === nodeId) return false;
+        
+        // Cannot be descendant
+        if (isDescendant(item, nodeId)) return false;
+        
+        return true;
+    });
+    
+    setAvailableParents(parents);
+    setIsMoveDialogOpen(true);
+  };
+
+  const handleMoveSave = async () => {
+    if (!movingNode) return;
+
+    try {
+      const updatedNode = {
+        ...movingNode,
+        parentId: moveTargetParentId || undefined
+      };
+      
+      const updated = await updateContent(updatedNode);
+      
+      if (updated) {
+        enqueueSnackbar(`ย้าย "${movingNode.title}" สำเร็จ`, {
+            variant: "success",
+          });
+        loadContent();
+        setIsMoveDialogOpen(false);
+        setMovingNode(null);
+        setMoveTargetParentId(null);
+      } else {
+        throw new Error("Failed to move content");
+      }
+    } catch (error) {
+       enqueueSnackbar("ย้ายเนื้อหาไม่สำเร็จ", { variant: "error" });
+       console.error("Error moving content:", error);
+    }
+  };
+
   const handleDelete = async (node: ContentNode) => {
-    if (confirm(`Are you sure you want to delete "${node.title}"?`)) {
+    if (confirm(`คุณแน่ใจว่าต้องการลบ "${node.title}" หรือไม่?`)) {
       try {
         const result = await deleteContent(node._id || node.id);
 
@@ -533,14 +604,14 @@ export default function AdminPage() {
         ) {
           // Ask user if they want to delete with children
           const deleteWithChildren = confirm(
-            `"${node.title}" has child content. Do you want to delete it along with all its children? Click OK to delete with children, or Cancel to keep them.`,
+            `"${node.title}" มีเนื้อหาย่อย คุณต้องการลบพร้อมกับเนื้อหาย่อยทั้งหมดหรือไม่? กดตกลงเพื่อลบทั้งหมด หรือยกเลิก`,
           );
 
           if (deleteWithChildren) {
             // Delete with force flag
             const forceResult = await deleteContent(node._id || node.id, true);
             if (forceResult === true) {
-              enqueueSnackbar("Content deleted successfully", {
+              enqueueSnackbar("ลบเนื้อหาสำเร็จ", {
                 variant: "success",
               });
               loadContent(); // Reload content
@@ -549,7 +620,7 @@ export default function AdminPage() {
             }
           }
         } else if (result === true) {
-          enqueueSnackbar("Content deleted successfully", {
+          enqueueSnackbar("ลบเนื้อหาสำเร็จ", {
             variant: "success",
           });
           loadContent(); // Reload content
@@ -557,7 +628,7 @@ export default function AdminPage() {
           throw new Error("Failed to delete content");
         }
       } catch (err) {
-        enqueueSnackbar("Failed to delete content", { variant: "error" });
+        enqueueSnackbar("ลบเนื้อหาไม่สำเร็จ", { variant: "error" });
         console.error("Error deleting content:", err);
       }
     }
@@ -679,7 +750,7 @@ export default function AdminPage() {
             >
               <ViewIcon sx={{ mr: { xs: 0, sm: 1 } }} />
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                View Site
+                ดูหน้าเว็บ
               </Box>
             </Button>
             <Button 
@@ -693,7 +764,7 @@ export default function AdminPage() {
             >
               <LogOutIcon sx={{ mr: { xs: 0, sm: 1 } }} />
               <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                Logout
+                ออกจากระบบ
               </Box>
             </Button>
           </Box>
@@ -713,7 +784,7 @@ export default function AdminPage() {
         >
           <TextField
             fullWidth
-            placeholder="Search content..."
+            placeholder="ค้นหาเนื้อหา..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
@@ -727,16 +798,16 @@ export default function AdminPage() {
           <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: 2, flexShrink: 0 }}>
             <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
               <InputLabel id="category-filter-label">
-                Filter by Category
+                กรองตามหมวดหมู่
               </InputLabel>
               <Select
                 labelId="category-filter-label"
                 value={selectedCategory}
-                label="Filter by Category"
+                label="กรองตามหมวดหมู่"
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <MenuItem value="">
-                  <em>All Categories</em>
+                  <em>ทุกหมวดหมู่</em>
                 </MenuItem>
                 {contentData
                   .filter((item) => item.type === "category")
@@ -753,16 +824,16 @@ export default function AdminPage() {
             {selectedCategory && (
               <FormControl sx={{ minWidth: { xs: "100%", md: 180 } }}>
                 <InputLabel id="chapter-filter-label">
-                  Filter by Chapter
+                  กรองตามบท
                 </InputLabel>
                 <Select
                   labelId="chapter-filter-label"
                   value={selectedChapter}
-                  label="Filter by Chapter"
+                  label="กรองตามบท"
                   onChange={(e) => setSelectedChapter(e.target.value)}
                 >
                   <MenuItem value="">
-                    <em>All Chapters</em>
+                    <em>ทุกบท</em>
                   </MenuItem>
                   {getAvailableChapters().map((chapter) => {
                     // Build display text showing hierarchy for nested chapters
@@ -789,13 +860,14 @@ export default function AdminPage() {
               </FormControl>
             )}
           </Box>
-          <Box sx={{ pb: 1, display: "flex" }}>
-             <Button
+          <Box sx={{ pb: 1, display: "flex",alignItems:'center' }}>
+            <Button
+              sx={{ minWidth: { xs: "100%", md: 180 } }}
                 variant="contained"
                 startIcon={<BookOpenIcon />}
                 onClick={() => handleCreate("category")}
               >
-                Add Category
+                เพิ่มหมวดหมู่
               </Button>
           </Box>
         </Box>
@@ -822,10 +894,10 @@ export default function AdminPage() {
               onChange={(_, newValue) => setSelectedTab(newValue)}
               sx={{ borderBottom: 1, borderColor: "divider" }}
             >
-              <Tab label="All Content" />
-              <Tab label="Categories" />
-              <Tab label="Chapters" />
-              <Tab label="Articles" />
+              <Tab label="เนื้อหาทั้งหมด" />
+              <Tab label="หมวดหมู่" />
+              <Tab label="บท" />
+              <Tab label="บทความ" />
             </Tabs>
 
             <TabPanel value={selectedTab} index={selectedTab}>
@@ -833,8 +905,8 @@ export default function AdminPage() {
                 <Box sx={{ textAlign: "center", py: 4 }}>
                   <Typography color="text.secondary">
                     {searchQuery
-                      ? "No content found matching your search."
-                      : "No content available. Create some content to get started."}
+                      ? "ไม่พบเนื้อหาที่ตรงกับการค้นหา"
+                      : "ไม่มีเนื้อหา เริ่มต้นสร้างเนื้อหาใหม่"}
                   </Typography>
                 </Box>
               ) : (
@@ -1003,6 +1075,15 @@ export default function AdminPage() {
                         >
                           <DeleteIcon />
                         </IconButton>
+                        <IconButton
+                            edge="end"
+                            onClick={() => handleMove(item)}
+                            color="info"
+                            size="small"
+                            title="Move to..."
+                          >
+                            <MoveIcon />
+                        </IconButton>
                       </Box>
                     </ListItem>
                   ))}
@@ -1020,7 +1101,7 @@ export default function AdminPage() {
           fullWidth
         >
           <DialogTitle>
-            {editingNode?.isNew ? "Create" : "Edit"} {editingNode?.type}
+            {editingNode?.isNew ? "สร้าง" : "แก้ไข"} {editingNode?.type === "category" ? "หมวดหมู่" : editingNode?.type === "chapter" ? "บท" : "บทความ"}
           </DialogTitle>
           <DialogContent>
             <Box
@@ -1029,10 +1110,10 @@ export default function AdminPage() {
               <Box sx={{ display: "flex", gap: 2 }}>
                 <TextField
                   fullWidth
-                  label="Title *"
+                  label="หัวข้อ *"
                   value={editingNode?.title || ""}
                   onChange={(e) => handleTitleChange(e.target.value)}
-                  placeholder="Enter title"
+                  placeholder="กรอกหัวข้อ"
                 />
               </Box>
 
@@ -1045,11 +1126,11 @@ export default function AdminPage() {
                     p.type === "category",
                 ) && (
                   <FormControl fullWidth>
-                    <InputLabel id="icon-select-label">Icon</InputLabel>
+                    <InputLabel id="icon-select-label">ไอคอน</InputLabel>
                     <Select
                       labelId="icon-select-label"
                       value={editingNode?.icon || ""}
-                      label="Icon"
+                      label="ไอคอน"
                       onChange={(e) =>
                         setEditingNode((prev) =>
                           prev ? { ...prev, icon: e.target.value } : null,
@@ -1057,7 +1138,7 @@ export default function AdminPage() {
                       }
                     >
                       <MenuItem value="">
-                        <em>Default (Inherit)</em>
+                        <em>ค่าเริ่มต้น (สืบทอด)</em>
                       </MenuItem>
                       {Object.keys(AVAILABLE_ICONS).map((name) => {
                         const Icon =
@@ -1174,12 +1255,12 @@ export default function AdminPage() {
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        label={`Parent ${editingNode?.type === "chapter" ? "Category/Chapter" : "Category/Chapter"} *`}
-                        placeholder="Search for parent category or chapter..."
-                        helperText="Type to search by name or hierarchy"
+                        label={`หมวดหมู่/บท หลัก *`}
+                        placeholder="ค้นหาหมวดหมู่หรือบท..."
+                        helperText="พิมพ์เพื่อค้นหาตามชื่อ"
                       />
                     )}
-                    noOptionsText="No matching parents found"
+                    noOptionsText="ไม่พบรายการที่ตรงกัน"
                     clearOnBlur
                     selectOnFocus
                     handleHomeEndKeys
@@ -1190,7 +1271,7 @@ export default function AdminPage() {
                 fullWidth
                 multiline
                 rows={3}
-                label="Summary"
+                label="สรุป"
                 value={editingNode?.summary || ""}
                 onChange={(e) =>
                   setEditingNode((prev) => ({
@@ -1198,14 +1279,14 @@ export default function AdminPage() {
                     summary: e.target.value,
                   }))
                 }
-                placeholder="Brief description"
+                placeholder="คำอธิบายย่อ"
               />
 
               {/* Author field for articles */}
               {editingNode?.type === "article" && (
                 <TextField
                   fullWidth
-                  label="Author (Optional)"
+                  label="ผู้เขียน (ไม่บังคับ)"
                   value={editingNode?.author || ""}
                   onChange={(e) =>
                     setEditingNode((prev) => ({
@@ -1213,8 +1294,8 @@ export default function AdminPage() {
                       author: e.target.value,
                     }))
                   }
-                  placeholder="Enter author name"
-                  helperText="Optional field for article attribution"
+                  placeholder="กรอกชื่อผู้เขียน"
+                  helperText="ระบุชื่อผู้เขียน (ไม่บังคับ)"
                 />
               )}
 
@@ -1231,7 +1312,7 @@ export default function AdminPage() {
                           ? "numbered"
                           : "available"
                     }
-                    label="Status"
+                    label="สถานะ"
                     onChange={(e) => {
                       const value = e.target.value;
                       if (value === "coming-soon") {
@@ -1249,9 +1330,9 @@ export default function AdminPage() {
                       }
                     }}
                   >
-                    <MenuItem value="available">Available (No Badge)</MenuItem>
-                    <MenuItem value="numbered">Numbered Badge</MenuItem>
-                    <MenuItem value="coming-soon">Coming Soon</MenuItem>
+                    <MenuItem value="available">พร้อมใช้งาน (ไม่มีป้ายกำกับ)</MenuItem>
+                    <MenuItem value="numbered">มีป้ายกำกับตัวเลข</MenuItem>
+                    <MenuItem value="coming-soon">เร็วๆ นี้</MenuItem>
                   </Select>
                 </FormControl>
               )}
@@ -1262,7 +1343,7 @@ export default function AdminPage() {
                   <TextField
                     fullWidth
                     type="number"
-                    label="Badge Number"
+                    label="หมายเลขป้ายกำกับ"
                     value={editingNode.badge || 1}
                     onChange={(e) =>
                       setEditingNode((prev) => ({
@@ -1277,14 +1358,14 @@ export default function AdminPage() {
               {editingNode?.type === "article" && (
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>
-                    Content
+                    เนื้อหา
                   </Typography>
                   <RichTextEditor
                     value={editingNode?.body || ""}
                     onChange={(value) =>
                       setEditingNode((prev) => ({ ...prev, body: value }))
                     }
-                    placeholder="Enter article content..."
+                    placeholder="กรอกเนื้อหาบทความ..."
                     height={300}
                   />
                 </Box>
@@ -1292,13 +1373,145 @@ export default function AdminPage() {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => setIsDialogOpen(false)}>ยกเลิก</Button>
             <Button
               onClick={handleSave}
               variant="contained"
               startIcon={<SaveIcon />}
             >
-              Save
+              บันทึก
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Move Content Dialog */}
+        <Dialog
+          open={isMoveDialogOpen}
+          onClose={() => setIsMoveDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            ย้าย "{movingNode?.title}" ไปยัง
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 2 }}>
+               <Autocomplete
+                    fullWidth
+                    options={availableParents}
+                    value={
+                      availableParents.find(
+                        (parent) =>
+                          (parent._id || parent.id) === moveTargetParentId,
+                      ) || null
+                    }
+                    onChange={(event, newValue) => {
+                      setMoveTargetParentId(newValue ? newValue._id || newValue.id : "");
+                    }}
+                    getOptionLabel={(option) => {
+                      // Build display text showing hierarchy
+                      const getParentHierarchy = (
+                        item: ContentNode,
+                      ): string => {
+                        const parentItem = contentData.find(
+                          (p) => (p._id || p.id) === item.parentId,
+                        );
+                        if (parentItem) {
+                          return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                        }
+                        return item.title;
+                      };
+                      return `${getParentHierarchy(option)} (${option.type})`;
+                    }}
+                    filterOptions={(options, { inputValue }) => {
+                      // Custom filter that searches in title and hierarchy
+                      return options.filter((option) => {
+                        const getParentHierarchy = (
+                          item: ContentNode,
+                        ): string => {
+                          const parentItem = contentData.find(
+                            (p) => (p._id || p.id) === item.parentId,
+                          );
+                          if (parentItem) {
+                            return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                          }
+                          return item.title;
+                        };
+                        const fullText =
+                          `${getParentHierarchy(option)} ${option.type}`.toLowerCase();
+                        return fullText.includes(inputValue.toLowerCase());
+                      });
+                    }}
+                    renderOption={(props, option) => {
+                      const { key, ...rest } = props;
+                      const getParentHierarchy = (
+                        item: ContentNode,
+                      ): string => {
+                        const parentItem = contentData.find(
+                          (p) => (p._id || p.id) === item.parentId,
+                        );
+                        if (parentItem) {
+                          return `${getParentHierarchy(parentItem)} > ${item.title}`;
+                        }
+                        return item.title;
+                      };
+
+                      return (
+                        <Box
+                          key={key}
+                          component="li"
+                          {...rest}
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body1">
+                              {getParentHierarchy(option)}
+                            </Typography>
+                          </Box>
+                          <Chip
+                            label={option.type}
+                            size="small"
+                            color={
+                              option.type === "category"
+                                ? "primary"
+                                : "secondary"
+                            }
+                          />
+                        </Box>
+                      );
+                    }}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="เลือกหมวดหมู่"
+                        placeholder="ค้นหาหมวดหมู่หรือบทความ..."
+                      />
+                    )}
+                    noOptionsText="ไม่พบหมวดหมู่ที่ตรงกัน"
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                  />
+                  
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="caption" color="text.secondary">
+                        หมวดหมู่ปัจจุบัน: {
+                            movingNode?.parentId 
+                            ? contentData.find(p => (p._id || p.id) === movingNode.parentId)?.title || "Unknown"
+                            : "Root (Top Level)"
+                        }
+                    </Typography>
+                  </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsMoveDialogOpen(false)}>ยกเลิก</Button>
+            <Button
+              onClick={handleMoveSave}
+              variant="contained"
+              startIcon={<MoveIcon />}
+            >
+              ย้าย
             </Button>
           </DialogActions>
         </Dialog>
@@ -1321,13 +1534,13 @@ export default function AdminPage() {
             <ListItemIcon>
               <FolderIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Add Chapter</ListItemText>
+            <ListItemText>เพิ่มบท</ListItemText>
           </MenuItem>
           <MenuItem onClick={handleAddArticle}>
             <ListItemIcon>
               <PostAddIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Add Article</ListItemText>
+            <ListItemText>เพิ่มบทความ</ListItemText>
           </MenuItem>
         </Menu>
       </Container>
